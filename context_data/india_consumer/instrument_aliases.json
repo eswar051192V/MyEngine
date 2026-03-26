@@ -1,0 +1,147 @@
+{
+  "_meta": {
+    "description": "Alias and news query helpers for non-equity market instruments."
+  },
+  "symbols": {
+    "USDINR=X": {
+      "name": "USD/INR",
+      "aliases": ["usd inr", "dollar rupee", "rupee", "inr", "rbi fx"],
+      "news_queries": ["USD INR", "Indian rupee", "RBI rupee"]
+    },
+    "EURINR=X": {
+      "name": "EUR/INR",
+      "aliases": ["eur inr", "euro rupee"],
+      "news_queries": ["EUR INR", "euro rupee"]
+    },
+    "GBPINR=X": {
+      "name": "GBP/INR",
+      "aliases": ["gbp inr", "pound rupee"],
+      "news_queries": ["GBP INR", "pound rupee"]
+    },
+    "JPYINR=X": {
+      "name": "JPY/INR",
+      "aliases": ["jpy inr", "yen rupee"],
+      "news_queries": ["JPY INR", "yen rupee"]
+    },
+    "AUDINR=X": {
+      "name": "AUD/INR",
+      "aliases": ["aud inr", "aussie rupee"],
+      "news_queries": ["AUD INR", "australian dollar rupee"]
+    },
+    "CADINR=X": {
+      "name": "CAD/INR",
+      "aliases": ["cad inr", "canadian dollar rupee"],
+      "news_queries": ["CAD INR", "canadian dollar rupee"]
+    },
+    "CHFINR=X": {
+      "name": "CHF/INR",
+      "aliases": ["chf inr", "swiss franc rupee"],
+      "news_queries": ["CHF INR", "swiss franc rupee"]
+    },
+    "SGDINR=X": {
+      "name": "SGD/INR",
+      "aliases": ["sgd inr", "singapore dollar rupee"],
+      "news_queries": ["SGD INR", "singapore dollar rupee"]
+    },
+    "GC=F": {
+      "name": "Gold Futures",
+      "aliases": ["gold", "mcx gold", "bullion", "gold futures"],
+      "news_queries": ["gold price", "MCX gold", "bullion market"]
+    },
+    "SI=F": {
+      "name": "Silver Futures",
+      "aliases": ["silver", "mcx silver", "silver futures"],
+      "news_queries": ["silver price", "MCX silver"]
+    },
+    "PL=F": {
+      "name": "Platinum Futures",
+      "aliases": ["platinum", "platinum futures"],
+      "news_queries": ["platinum price"]
+    },
+    "PA=F": {
+      "name": "Palladium Futures",
+      "aliases": ["palladium", "palladium futures"],
+      "news_queries": ["palladium price"]
+    },
+    "CL=F": {
+      "name": "WTI Crude Oil Futures",
+      "aliases": ["crude oil", "wti", "mcx crude oil", "oil futures"],
+      "news_queries": ["WTI crude oil", "MCX crude oil", "oil price"]
+    },
+    "BZ=F": {
+      "name": "Brent Crude Futures",
+      "aliases": ["brent", "brent crude"],
+      "news_queries": ["Brent crude", "brent oil price"]
+    },
+    "NG=F": {
+      "name": "Natural Gas Futures",
+      "aliases": ["natural gas", "mcx natural gas", "gas futures"],
+      "news_queries": ["natural gas price", "MCX natural gas"]
+    },
+    "RB=F": {
+      "name": "RBOB Gasoline Futures",
+      "aliases": ["gasoline", "rbob"],
+      "news_queries": ["gasoline futures"]
+    },
+    "HO=F": {
+      "name": "Heating Oil Futures",
+      "aliases": ["heating oil"],
+      "news_queries": ["heating oil futures"]
+    },
+    "HG=F": {
+      "name": "Copper Futures",
+      "aliases": ["copper", "mcx copper", "copper futures"],
+      "news_queries": ["copper price", "MCX copper"]
+    },
+    "ALI=F": {
+      "name": "Aluminum Futures",
+      "aliases": ["aluminium", "aluminum", "mcx aluminium"],
+      "news_queries": ["aluminium price", "MCX aluminium"]
+    },
+    "ZC=F": {
+      "name": "Corn Futures",
+      "aliases": ["corn futures", "corn"],
+      "news_queries": ["corn futures"]
+    },
+    "ZW=F": {
+      "name": "Wheat Futures",
+      "aliases": ["wheat futures", "wheat"],
+      "news_queries": ["wheat futures"]
+    },
+    "ZS=F": {
+      "name": "Soybean Futures",
+      "aliases": ["soybeans", "soybean futures"],
+      "news_queries": ["soybean futures"]
+    },
+    "KC=F": {
+      "name": "Coffee Futures",
+      "aliases": ["coffee futures", "coffee"],
+      "news_queries": ["coffee futures"]
+    },
+    "SB=F": {
+      "name": "Sugar Futures",
+      "aliases": ["sugar futures", "sugar"],
+      "news_queries": ["sugar futures"]
+    },
+    "^NSEI": {
+      "name": "Nifty 50",
+      "aliases": ["nifty", "nifty 50", "india benchmark index"],
+      "news_queries": ["Nifty 50", "Indian stock market"]
+    },
+    "^NSEBANK": {
+      "name": "Nifty Bank",
+      "aliases": ["bank nifty", "nifty bank"],
+      "news_queries": ["Bank Nifty", "Nifty Bank"]
+    },
+    "^CNXFIN": {
+      "name": "Nifty Financial Services",
+      "aliases": ["nifty financial services", "fin nifty"],
+      "news_queries": ["Nifty Financial Services", "FinNifty"]
+    },
+    "^NSEMDCP50": {
+      "name": "Nifty Midcap Select",
+      "aliases": ["midcap select", "nifty midcap select"],
+      "news_queries": ["Nifty Midcap Select"]
+    }
+  }
+}

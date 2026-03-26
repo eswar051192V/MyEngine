@@ -1,0 +1,65 @@
+/* =============================================================================
+   Market Design Language (MDL)
+   Tokens: --md-* on .md-app[data-theme]. Surfaces: .md-home-panel, .mdl-surface.
+   Actions: .md-btn (pill), .mdl-pill (tag). Typography: .md-type-* utilities below.
+   ============================================================================= */
+
+:root {
+  --md-radius-pill: 999px;
+  --md-radius-card: 16px;
+  --md-btn-min-h: 34px;
+  --md-type-eyebrow: 0.58rem;
+  --md-type-label: 0.65rem;
+  --md-type-body: 0.78rem;
+  --md-type-title: 1.05rem;
+  --md-type-display: 1.35rem;
+  --md-track: 0.02em;
+}
+
+.md-app {
+  font-feature-settings: "kern" 1, "liga" 1;
+  text-rendering: optimizeLegibility;
+}
+
+/* Semantic text utilities (optional; prefer tokens + existing headings) */
+.md-type-eyebrow {
+  font-size: var(--md-type-eyebrow);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--md-faint);
+}
+
+.md-type-label {
+  font-size: var(--md-type-label);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--md-muted);
+}
+
+.md-type-body {
+  font-size: var(--md-type-body);
+  line-height: 1.45;
+  color: var(--md-text);
+}
+
+.md-type-muted {
+  color: var(--md-muted);
+  font-size: var(--md-type-body);
+}
+
+.md-type-title {
+  font-size: var(--md-type-title);
+  font-weight: 800;
+  letter-spacing: var(--md-track);
+  color: var(--md-text);
+}
+
+.md-type-display {
+  font-size: var(--md-type-display);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: var(--md-text);
+}

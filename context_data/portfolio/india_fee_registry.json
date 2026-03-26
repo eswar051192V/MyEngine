@@ -1,0 +1,340 @@
+{
+  "version": "2026-03-25.india.v1",
+  "country": "India",
+  "updatedAt": "2026-03-25",
+  "currency": "INR",
+  "countryOptions": [
+    "India"
+  ],
+  "stateOptions": [
+    "Andhra Pradesh",
+    "Arunachal Pradesh",
+    "Assam",
+    "Bihar",
+    "Chhattisgarh",
+    "Goa",
+    "Gujarat",
+    "Haryana",
+    "Himachal Pradesh",
+    "Jharkhand",
+    "Karnataka",
+    "Kerala",
+    "Madhya Pradesh",
+    "Maharashtra",
+    "Manipur",
+    "Meghalaya",
+    "Mizoram",
+    "Nagaland",
+    "Odisha",
+    "Punjab",
+    "Rajasthan",
+    "Sikkim",
+    "Tamil Nadu",
+    "Telangana",
+    "Tripura",
+    "Uttar Pradesh",
+    "Uttarakhand",
+    "West Bengal",
+    "Andaman and Nicobar Islands",
+    "Chandigarh",
+    "Dadra and Nagar Haveli and Daman and Diu",
+    "Delhi",
+    "Jammu and Kashmir",
+    "Ladakh",
+    "Lakshadweep",
+    "Puducherry"
+  ],
+  "stampDutyMeta": {
+    "country": "India",
+    "model": "centralized_uniform_schedule",
+    "buyerStateAttribution": true,
+    "note": "Indian securities stamp duty generally follows a centralized post-2020 rate schedule, while collections are attributed using the buyer's state or residence details when relevant."
+  },
+  "stateStampDutyOverrides": {},
+  "segmentMappings": {
+    "Delivery": "equity_delivery",
+    "Intraday": "equity_intraday",
+    "Futures": "futures",
+    "Options": "options",
+    "ETF": "etf_delivery",
+    "Mutual Fund": "mutual_fund",
+    "Commodity": "commodity_futures",
+    "FX": "currency"
+  },
+  "segmentLabels": {
+    "equity_delivery": "Equity Delivery",
+    "equity_intraday": "Equity Intraday",
+    "futures": "Futures",
+    "options": "Options",
+    "etf_delivery": "ETF Delivery",
+    "mutual_fund": "Mutual Fund",
+    "commodity_futures": "Commodity Futures",
+    "currency": "Currency"
+  },
+  "statutoryCharges": {
+    "equity_delivery": {
+      "buy": [
+        { "key": "stt", "label": "STT", "kind": "percentage", "rate": 0.001, "basis": "turnover" },
+        { "key": "stamp_duty", "label": "Stamp Duty", "kind": "percentage", "rate": 0.00015, "basis": "turnover" },
+        { "key": "exchange_txn", "label": "Exchange Transaction Charge", "kind": "percentage", "rate": 0.0000297, "basis": "turnover" },
+        { "key": "sebi", "label": "SEBI Turnover Charge", "kind": "percentage", "rate": 0.000001, "basis": "turnover" }
+      ],
+      "sell": [
+        { "key": "stt", "label": "STT", "kind": "percentage", "rate": 0.001, "basis": "turnover" },
+        { "key": "exchange_txn", "label": "Exchange Transaction Charge", "kind": "percentage", "rate": 0.0000297, "basis": "turnover" },
+        { "key": "sebi", "label": "SEBI Turnover Charge", "kind": "percentage", "rate": 0.000001, "basis": "turnover" }
+      ],
+      "gst": {
+        "rate": 0.18,
+        "appliesTo": ["brokerage", "exchange_txn", "sebi", "dp_charge", "other_charge"]
+      }
+    },
+    "equity_intraday": {
+      "buy": [
+        { "key": "stamp_duty", "label": "Stamp Duty", "kind": "percentage", "rate": 0.00003, "basis": "turnover" },
+        { "key": "exchange_txn", "label": "Exchange Transaction Charge", "kind": "percentage", "rate": 0.0000297, "basis": "turnover" },
+        { "key": "sebi", "label": "SEBI Turnover Charge", "kind": "percentage", "rate": 0.000001, "basis": "turnover" }
+      ],
+      "sell": [
+        { "key": "stt", "label": "STT", "kind": "percentage", "rate": 0.00025, "basis": "turnover" },
+        { "key": "exchange_txn", "label": "Exchange Transaction Charge", "kind": "percentage", "rate": 0.0000297, "basis": "turnover" },
+        { "key": "sebi", "label": "SEBI Turnover Charge", "kind": "percentage", "rate": 0.000001, "basis": "turnover" }
+      ],
+      "gst": {
+        "rate": 0.18,
+        "appliesTo": ["brokerage", "exchange_txn", "sebi", "other_charge"]
+      }
+    },
+    "futures": {
+      "buy": [
+        { "key": "stamp_duty", "label": "Stamp Duty", "kind": "percentage", "rate": 0.00002, "basis": "turnover" },
+        { "key": "exchange_txn", "label": "Exchange Transaction Charge", "kind": "percentage", "rate": 0.0000173, "basis": "turnover" },
+        { "key": "sebi", "label": "SEBI Turnover Charge", "kind": "percentage", "rate": 0.000001, "basis": "turnover" }
+      ],
+      "sell": [
+        { "key": "stt", "label": "STT", "kind": "percentage", "rate": 0.0002, "basis": "turnover" },
+        { "key": "exchange_txn", "label": "Exchange Transaction Charge", "kind": "percentage", "rate": 0.0000173, "basis": "turnover" },
+        { "key": "sebi", "label": "SEBI Turnover Charge", "kind": "percentage", "rate": 0.000001, "basis": "turnover" }
+      ],
+      "gst": {
+        "rate": 0.18,
+        "appliesTo": ["brokerage", "exchange_txn", "sebi", "other_charge"]
+      }
+    },
+    "options": {
+      "buy": [
+        { "key": "stamp_duty", "label": "Stamp Duty", "kind": "percentage", "rate": 0.00003, "basis": "turnover" },
+        { "key": "exchange_txn", "label": "Exchange Transaction Charge", "kind": "percentage", "rate": 0.0003503, "basis": "turnover" },
+        { "key": "sebi", "label": "SEBI Turnover Charge", "kind": "percentage", "rate": 0.000001, "basis": "turnover" }
+      ],
+      "sell": [
+        { "key": "stt", "label": "STT", "kind": "percentage", "rate": 0.001, "basis": "turnover" },
+        { "key": "exchange_txn", "label": "Exchange Transaction Charge", "kind": "percentage", "rate": 0.0003503, "basis": "turnover" },
+        { "key": "sebi", "label": "SEBI Turnover Charge", "kind": "percentage", "rate": 0.000001, "basis": "turnover" }
+      ],
+      "gst": {
+        "rate": 0.18,
+        "appliesTo": ["brokerage", "exchange_txn", "sebi", "other_charge"]
+      }
+    },
+    "etf_delivery": {
+      "buy": [
+        { "key": "stt", "label": "STT", "kind": "percentage", "rate": 0.001, "basis": "turnover" },
+        { "key": "stamp_duty", "label": "Stamp Duty", "kind": "percentage", "rate": 0.00015, "basis": "turnover" },
+        { "key": "exchange_txn", "label": "Exchange Transaction Charge", "kind": "percentage", "rate": 0.0000297, "basis": "turnover" },
+        { "key": "sebi", "label": "SEBI Turnover Charge", "kind": "percentage", "rate": 0.000001, "basis": "turnover" }
+      ],
+      "sell": [
+        { "key": "stt", "label": "STT", "kind": "percentage", "rate": 0.001, "basis": "turnover" },
+        { "key": "exchange_txn", "label": "Exchange Transaction Charge", "kind": "percentage", "rate": 0.0000297, "basis": "turnover" },
+        { "key": "sebi", "label": "SEBI Turnover Charge", "kind": "percentage", "rate": 0.000001, "basis": "turnover" }
+      ],
+      "gst": {
+        "rate": 0.18,
+        "appliesTo": ["brokerage", "exchange_txn", "sebi", "dp_charge", "other_charge"]
+      }
+    },
+    "mutual_fund": {
+      "buy": [],
+      "sell": [],
+      "gst": {
+        "rate": 0.0,
+        "appliesTo": []
+      }
+    }
+  },
+  "defaultPlatformId": "zerodha",
+  "platforms": {
+    "zerodha": {
+      "label": "Zerodha",
+      "aliases": ["Kite"],
+      "sourceTitle": "Zerodha pricing",
+      "sourceUrl": "https://zerodha.com/pricing",
+      "exactness": "official_template",
+      "brokerage": {
+        "equity_delivery": { "buy": { "kind": "flat", "amount": 0 }, "sell": { "kind": "flat", "amount": 0 } },
+        "equity_intraday": { "buy": { "kind": "capped_percentage", "rate": 0.0003, "cap": 20 }, "sell": { "kind": "capped_percentage", "rate": 0.0003, "cap": 20 } },
+        "futures": { "buy": { "kind": "capped_percentage", "rate": 0.0003, "cap": 20 }, "sell": { "kind": "capped_percentage", "rate": 0.0003, "cap": 20 } },
+        "options": { "buy": { "kind": "flat", "amount": 20 }, "sell": { "kind": "flat", "amount": 20 } },
+        "etf_delivery": { "buy": { "kind": "flat", "amount": 0 }, "sell": { "kind": "flat", "amount": 0 } },
+        "mutual_fund": { "buy": { "kind": "flat", "amount": 0 }, "sell": { "kind": "flat", "amount": 0 } }
+      },
+      "dpCharges": {
+        "equity_delivery": { "sell": { "amount": 13.5 } },
+        "etf_delivery": { "sell": { "amount": 13.5 } }
+      }
+    },
+    "groww": {
+      "label": "Groww",
+      "aliases": [],
+      "sourceTitle": "Groww pricing",
+      "sourceUrl": "https://groww.in/pricing/stocks",
+      "exactness": "official_template",
+      "brokerage": {
+        "equity_delivery": { "buy": { "kind": "cap_min_percentage", "rate": 0.001, "cap": 20, "min": 5 }, "sell": { "kind": "cap_min_percentage", "rate": 0.001, "cap": 20, "min": 5 } },
+        "equity_intraday": { "buy": { "kind": "cap_min_percentage", "rate": 0.001, "cap": 20, "min": 5 }, "sell": { "kind": "cap_min_percentage", "rate": 0.001, "cap": 20, "min": 5 } },
+        "futures": { "buy": { "kind": "flat", "amount": 20 }, "sell": { "kind": "flat", "amount": 20 } },
+        "options": { "buy": { "kind": "flat", "amount": 20 }, "sell": { "kind": "flat", "amount": 20 } },
+        "etf_delivery": { "buy": { "kind": "cap_min_percentage", "rate": 0.001, "cap": 20, "min": 5 }, "sell": { "kind": "cap_min_percentage", "rate": 0.001, "cap": 20, "min": 5 } },
+        "mutual_fund": { "buy": { "kind": "flat", "amount": 0 }, "sell": { "kind": "flat", "amount": 0 } }
+      },
+      "dpCharges": {
+        "equity_delivery": { "sell": { "amount": 13.5 } },
+        "etf_delivery": { "sell": { "amount": 13.5 } }
+      }
+    },
+    "upstox": {
+      "label": "Upstox",
+      "aliases": [],
+      "sourceTitle": "Upstox pricing",
+      "sourceUrl": "https://upstox.com/pricing/",
+      "exactness": "official_template",
+      "brokerage": {
+        "equity_delivery": { "buy": { "kind": "flat", "amount": 20 }, "sell": { "kind": "flat", "amount": 20 } },
+        "equity_intraday": { "buy": { "kind": "capped_percentage", "rate": 0.001, "cap": 20 }, "sell": { "kind": "capped_percentage", "rate": 0.001, "cap": 20 } },
+        "futures": { "buy": { "kind": "capped_percentage", "rate": 0.0005, "cap": 20 }, "sell": { "kind": "capped_percentage", "rate": 0.0005, "cap": 20 } },
+        "options": { "buy": { "kind": "flat", "amount": 20 }, "sell": { "kind": "flat", "amount": 20 } },
+        "etf_delivery": { "buy": { "kind": "flat", "amount": 20 }, "sell": { "kind": "flat", "amount": 20 } },
+        "mutual_fund": { "buy": { "kind": "flat", "amount": 0 }, "sell": { "kind": "flat", "amount": 0 } }
+      },
+      "dpCharges": {
+        "equity_delivery": { "sell": { "amount": 20 } },
+        "etf_delivery": { "sell": { "amount": 20 } }
+      }
+    },
+    "angel_one": {
+      "label": "Angel One",
+      "aliases": ["Angel Broking"],
+      "sourceTitle": "Angel One pricing",
+      "sourceUrl": "https://www.angelone.in/exchange-transaction-charges",
+      "exactness": "official_template",
+      "brokerage": {
+        "equity_delivery": { "buy": { "kind": "cap_min_percentage", "rate": 0.001, "cap": 20, "min": 2 }, "sell": { "kind": "cap_min_percentage", "rate": 0.001, "cap": 20, "min": 2 } },
+        "equity_intraday": { "buy": { "kind": "cap_min_percentage", "rate": 0.001, "cap": 20, "min": 5 }, "sell": { "kind": "cap_min_percentage", "rate": 0.001, "cap": 20, "min": 5 } },
+        "futures": { "buy": { "kind": "flat", "amount": 20 }, "sell": { "kind": "flat", "amount": 20 } },
+        "options": { "buy": { "kind": "flat", "amount": 20 }, "sell": { "kind": "flat", "amount": 20 } },
+        "etf_delivery": { "buy": { "kind": "cap_min_percentage", "rate": 0.001, "cap": 20, "min": 2 }, "sell": { "kind": "cap_min_percentage", "rate": 0.001, "cap": 20, "min": 2 } },
+        "mutual_fund": { "buy": { "kind": "flat", "amount": 0 }, "sell": { "kind": "flat", "amount": 0 } }
+      },
+      "dpCharges": {
+        "equity_delivery": { "sell": { "amount": 20 } },
+        "etf_delivery": { "sell": { "amount": 20 } }
+      }
+    },
+    "icici_direct": {
+      "label": "ICICI Direct",
+      "aliases": ["ICICIdirect"],
+      "sourceTitle": "ICICI Direct brokerage",
+      "sourceUrl": "https://www.icicidirect.com/brokerage",
+      "exactness": "plan_based_estimate",
+      "brokerage": {
+        "equity_delivery": { "buy": { "kind": "percentage", "rate": 0.001 }, "sell": { "kind": "percentage", "rate": 0.001 } },
+        "equity_intraday": { "buy": { "kind": "flat", "amount": 20 }, "sell": { "kind": "flat", "amount": 20 } },
+        "futures": { "buy": { "kind": "flat", "amount": 20 }, "sell": { "kind": "flat", "amount": 20 } },
+        "options": { "buy": { "kind": "flat", "amount": 20 }, "sell": { "kind": "flat", "amount": 20 } },
+        "etf_delivery": { "buy": { "kind": "percentage", "rate": 0.001 }, "sell": { "kind": "percentage", "rate": 0.001 } },
+        "mutual_fund": { "buy": { "kind": "flat", "amount": 0 }, "sell": { "kind": "flat", "amount": 0 } }
+      },
+      "dpCharges": {
+        "equity_delivery": { "sell": { "amount": 18.5 } },
+        "etf_delivery": { "sell": { "amount": 18.5 } }
+      }
+    },
+    "hdfc_sky": {
+      "label": "HDFC Sky",
+      "aliases": ["HDFC Sky"],
+      "sourceTitle": "HDFC Sky pricing",
+      "sourceUrl": "https://www.hdfcsky.com/pricing",
+      "exactness": "official_template",
+      "brokerage": {
+        "equity_delivery": { "buy": { "kind": "capped_percentage", "rate": 0.025, "cap": 20 }, "sell": { "kind": "capped_percentage", "rate": 0.025, "cap": 20 } },
+        "equity_intraday": { "buy": { "kind": "capped_percentage", "rate": 0.025, "cap": 20 }, "sell": { "kind": "capped_percentage", "rate": 0.025, "cap": 20 } },
+        "futures": { "buy": { "kind": "capped_percentage", "rate": 0.025, "cap": 20 }, "sell": { "kind": "capped_percentage", "rate": 0.025, "cap": 20 } },
+        "options": { "buy": { "kind": "flat", "amount": 20 }, "sell": { "kind": "flat", "amount": 20 } },
+        "etf_delivery": { "buy": { "kind": "flat", "amount": 20 }, "sell": { "kind": "flat", "amount": 20 } },
+        "mutual_fund": { "buy": { "kind": "flat", "amount": 0 }, "sell": { "kind": "flat", "amount": 0 } }
+      },
+      "dpCharges": {
+        "equity_delivery": { "sell": { "amount": 18.5 } },
+        "etf_delivery": { "sell": { "amount": 18.5 } }
+      }
+    },
+    "kotak_securities": {
+      "label": "Kotak Securities",
+      "aliases": ["Kotak"],
+      "sourceTitle": "Kotak Securities estimate",
+      "sourceUrl": "https://www.kotaksecurities.com",
+      "exactness": "template_estimate",
+      "brokerage": {
+        "equity_delivery": { "buy": { "kind": "capped_percentage", "rate": 0.0025, "cap": 20 }, "sell": { "kind": "capped_percentage", "rate": 0.0025, "cap": 20 } },
+        "equity_intraday": { "buy": { "kind": "capped_percentage", "rate": 0.001, "cap": 20 }, "sell": { "kind": "capped_percentage", "rate": 0.001, "cap": 20 } },
+        "futures": { "buy": { "kind": "flat", "amount": 20 }, "sell": { "kind": "flat", "amount": 20 } },
+        "options": { "buy": { "kind": "flat", "amount": 20 }, "sell": { "kind": "flat", "amount": 20 } },
+        "etf_delivery": { "buy": { "kind": "capped_percentage", "rate": 0.0025, "cap": 20 }, "sell": { "kind": "capped_percentage", "rate": 0.0025, "cap": 20 } },
+        "mutual_fund": { "buy": { "kind": "flat", "amount": 0 }, "sell": { "kind": "flat", "amount": 0 } }
+      },
+      "dpCharges": {
+        "equity_delivery": { "sell": { "amount": 18.5 } },
+        "etf_delivery": { "sell": { "amount": 18.5 } }
+      }
+    },
+    "paytm_money": {
+      "label": "Paytm Money",
+      "aliases": ["Paytm"],
+      "sourceTitle": "Paytm Money trade charges",
+      "sourceUrl": "https://www.paytmmoney.com/blog/trade-charges-paytm-money/",
+      "exactness": "official_template",
+      "brokerage": {
+        "equity_delivery": { "buy": { "kind": "flat", "amount": 0.01 }, "sell": { "kind": "flat", "amount": 0.01 } },
+        "equity_intraday": { "buy": { "kind": "flat", "amount": 10 }, "sell": { "kind": "flat", "amount": 10 } },
+        "futures": { "buy": { "kind": "capped_percentage", "rate": 0.0002, "cap": 10 }, "sell": { "kind": "capped_percentage", "rate": 0.0002, "cap": 10 } },
+        "options": { "buy": { "kind": "flat", "amount": 10 }, "sell": { "kind": "flat", "amount": 10 } },
+        "etf_delivery": { "buy": { "kind": "flat", "amount": 0.01 }, "sell": { "kind": "flat", "amount": 0.01 } },
+        "mutual_fund": { "buy": { "kind": "flat", "amount": 0 }, "sell": { "kind": "flat", "amount": 0 } }
+      },
+      "dpCharges": {
+        "equity_delivery": { "sell": { "amount": 13.5 } },
+        "etf_delivery": { "sell": { "amount": 13.5 } }
+      }
+    },
+    "indmoney": {
+      "label": "INDmoney",
+      "aliases": ["INDMoney"],
+      "sourceTitle": "INDmoney pricing estimate",
+      "sourceUrl": "https://www.indmoney.com",
+      "exactness": "template_estimate",
+      "brokerage": {
+        "equity_delivery": { "buy": { "kind": "flat", "amount": 0 }, "sell": { "kind": "flat", "amount": 0 } },
+        "equity_intraday": { "buy": { "kind": "flat", "amount": 20 }, "sell": { "kind": "flat", "amount": 20 } },
+        "futures": { "buy": { "kind": "flat", "amount": 20 }, "sell": { "kind": "flat", "amount": 20 } },
+        "options": { "buy": { "kind": "flat", "amount": 20 }, "sell": { "kind": "flat", "amount": 20 } },
+        "etf_delivery": { "buy": { "kind": "flat", "amount": 0 }, "sell": { "kind": "flat", "amount": 0 } },
+        "mutual_fund": { "buy": { "kind": "flat", "amount": 0 }, "sell": { "kind": "flat", "amount": 0 } }
+      },
+      "dpCharges": {
+        "equity_delivery": { "sell": { "amount": 13.5 } },
+        "etf_delivery": { "sell": { "amount": 13.5 } }
+      }
+    }
+  }
+}

@@ -19,6 +19,13 @@ build/
 local_market_data/
 *.parquet
 
+# Generated consumer RAG index (cases jsonl is committed as demo seed; delete line to track db)
+context_data/india_consumer/rag.sqlite
+
+# Local news cache + open-context ledger (optional: remove to version-control)
+context_data/news/
+context_data/open_context/ledger.jsonl
+
 # Node / React
 stock-analysis-dashboard/node_modules/
 stock-analysis-dashboard/build/
