@@ -71,8 +71,20 @@ export default function AssetDetailPage({ state, handlers, setState, symbol, onB
         setDownloadMsg('');
         try {
             const r = await fetch(`${API_BASE}/api/ticker/${encodeURIComponent(symbol)}/download`, { method: 'POST' });
-            const d = await r.json();
-            setDownloadMsg(d?.message || d?.error || 'Done');
+            const d = await r.json().catch(() => ({}));
+            if (r.ok && d && d.status === 'success') {
+                const rs = d.records_saved;
+                if (rs && typeof rs === 'object' && !Array.isArray(rs)) {
+                    const parts = Object.entries(rs)
+                        .map(([k, v]) => `${k}: ${v}`)
+                        .join(', ');
+                    setDownloadMsg(parts ? `Saved (${parts})` : 'Download complete');
+                } else {
+                    setDownloadMsg('Download complete');
+                }
+            } else {
+                setDownloadMsg(d?.error || d?.detail || `Download failed (${r.status})`);
+            }
         } catch {
             setDownloadMsg('Download failed');
         } finally {
@@ -85,9 +97,25 @@ export default function AssetDetailPage({ state, handlers, setState, symbol, onB
         setArchiving(true);
         setDownloadMsg('');
         try {
-            const r = await fetch(`${API_BASE}/api/ticker/${encodeURIComponent(symbol)}/download-full-db`, { method: 'POST' });
-            const d = await r.json();
-            setDownloadMsg(d?.message || d?.error || 'Done');
+            const r = await fetch(`${API_BASE}/api/ticker/${encodeURIComponent(symbol)}/download-full-db`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({}),
+            });
+            const d = await r.json().catch(() => ({}));
+            if (r.ok && d?.ok) {
+                const sr = d.saved_rows;
+                if (sr && typeof sr === 'object' && !Array.isArray(sr)) {
+                    const parts = Object.entries(sr)
+                        .map(([k, v]) => `${k}: ${v}`)
+                        .join(', ');
+                    setDownloadMsg(parts ? `Archive saved (${parts})` : (d.note || 'Archive complete'));
+                } else {
+                    setDownloadMsg(d.note || 'Archive complete');
+                }
+            } else {
+                setDownloadMsg(d?.error || d?.detail || `Archive failed (${r.status})`);
+            }
         } catch {
             setDownloadMsg('Archive failed');
         } finally {
@@ -241,25 +269,35 @@ export default function AssetDetailPage({ state, handlers, setState, symbol, onB
                         <div className="ad-summary-grid">
                             {/* Description */}
                             <section className="mdl-card ad-desc-card">
-                                <h3 className="ad-section-title">About</h3>
+                                <h3 className="ad-section-title">
+                                    {q?.wikipediaTitle ? q.wikipediaTitle : 'About'}
+                                </h3>
                                 <p className="ad-desc-text">
-                                    {q?.description || q?.longBusinessSummary || 'No description available for this instrument.'}
+                                    {q?.description || q?.yahooDescription || 'No description available for this instrument.'}
                                 </p>
-                                {q?.website && (
-                                    <a className="md-link-btn ad-desc-link" href={q.website} target="_blank" rel="noreferrer">
-                                        Website
-                                    </a>
+                                {q?.yahooDescription && q?.wikipediaExtract && q.description !== q.yahooDescription && (
+                                    <details className="ad-desc-more">
+                                        <summary className="ad-desc-more__toggle">Yahoo Finance summary</summary>
+                                        <p className="ad-desc-text">{q.yahooDescription}</p>
+                                    </details>
                                 )}
-                                {q?.wikiUrl && (
-                                    <a className="md-link-btn ad-desc-link" href={q.wikiUrl} target="_blank" rel="noreferrer">
-                                        Wikipedia
-                                    </a>
-                                )}
-                                {q?.yahooUrl && (
-                                    <a className="md-link-btn ad-desc-link" href={q.yahooUrl} target="_blank" rel="noreferrer">
-                                        Yahoo Finance
-                                    </a>
-                                )}
+                                <div className="ad-desc-links">
+                                    {q?.website && (
+                                        <a className="md-link-btn ad-desc-link" href={q.website} target="_blank" rel="noreferrer">
+                                            Website
+                                        </a>
+                                    )}
+                                    {q?.wikiUrl && (
+                                        <a className="md-link-btn ad-desc-link" href={q.wikiUrl} target="_blank" rel="noreferrer">
+                                            Wikipedia
+                                        </a>
+                                    )}
+                                    {q?.yahooUrl && (
+                                        <a className="md-link-btn ad-desc-link" href={q.yahooUrl} target="_blank" rel="noreferrer">
+                                            Yahoo Finance
+                                        </a>
+                                    )}
+                                </div>
                             </section>
 
                             {/* Key statistics */}
@@ -316,7 +354,7 @@ export default function AssetDetailPage({ state, handlers, setState, symbol, onB
                                 <div className="ad-chart-loading">Loading chart data…</div>
                             ) : (
                                 <div className="ad-chart-wrap">
-                                    <ChartWorkspace state={state} handlers={handlers} setState={setState} />
+                                    <ChartWorkspace state={state} handlers={handlers} setState={setState} skipViewMode />
                                 </div>
                             )}
                         </section>
@@ -343,7 +381,7 @@ export default function AssetDetailPage({ state, handlers, setState, symbol, onB
                                 <div className="ad-chart-loading">Loading chart data…</div>
                             ) : (
                                 <div className="ad-chart-wrap ad-chart-wrap--full">
-                                    <ChartWorkspace state={state} handlers={handlers} setState={setState} />
+                                    <ChartWorkspace state={state} handlers={handlers} setState={setState} skipViewMode />
                                 </div>
                             )}
                         </div>
@@ -414,7 +452,7 @@ export default function AssetDetailPage({ state, handlers, setState, symbol, onB
 
                             {(ohlcView === 'candle' || ohlcView === 'line' || ohlcView === 'mountain') && (
                                 <div className="ad-chart-wrap ad-chart-wrap--full">
-                                    <ChartWorkspace state={state} handlers={handlers} setState={setState} />
+                                    <ChartWorkspace state={state} handlers={handlers} setState={setState} skipViewMode />
                                 </div>
                             )}
                         </div>

@@ -23,6 +23,8 @@ import random
 
 logger = logging.getLogger(__name__)
 
+from market_download import parquet_symbol_key
+
 from context.exchange_session import EXCHANGE_CALENDAR_KEY, EXCHANGE_COUNTRY_FALLBACK
 from market_universe import (
     EXCHANGE_SCHEDULE,
@@ -44,6 +46,7 @@ from backend.scheduler import (
     stop_scheduler,
     trigger_job_now,
 )
+from context.wikipedia_client import wikipedia_enrichment_from_yahoo
 from context.india_mutual_funds import (
     MUTUAL_FUND_CATEGORY,
     get_mutual_fund_details,
@@ -171,7 +174,7 @@ class DownloadFullHistoryBody(BaseModel):
 class DownloadAllAndCalculateBody(BaseModel):
     categories: list[str] | None = None
     limit: int | None = None
-    sleep_seconds: float = 0.1
+    sleep_seconds: float = 0.5
     include_intraday: bool = False
     intraday_15m_days: int = 60
     intraday_1h_days: int = 730
@@ -264,7 +267,7 @@ class RedownloadAllBody(BaseModel):
     symbols: list[str] | None = None
     categories: list[str] | None = None
     limit: int | None = None
-    sleep_seconds: float = 0.75
+    sleep_seconds: float = 0.5
 
 
 class ResetAndRedownloadBody(BaseModel):
@@ -277,14 +280,14 @@ class ResetAndRedownloadBody(BaseModel):
     recreate_folders: bool = True
     categories: list[str] | None = None
     limit: int | None = None
-    sleep_seconds: float = 0.75
+    sleep_seconds: float = 0.5
 
 
 class BulkInfoLoadBody(BaseModel):
     symbols: list[str] | None = None
     categories: list[str] | None = None
     limit: int | None = None
-    sleep_seconds: float = 0.2
+    sleep_seconds: float = 0.5
 
 
 class SchedulerLogQuery(BaseModel):
@@ -396,6 +399,68 @@ def _save_df_to_ohlc_sqlite(conn: sqlite3.Connection, symbol: str, interval: str
     return len(rows)
 
 
+YAHOO_CALL_SPACING_SEC = 0.5
+
+
+def _sleep_between_yahoo_calls() -> None:
+    time.sleep(YAHOO_CALL_SPACING_SEC)
+
+
+def _normalize_index_naive_utc(df: pd.DataFrame) -> pd.DataFrame:
+    if df is None or df.empty:
+        return df
+    out = df.copy()
+    idx = out.index
+    if isinstance(idx, pd.DatetimeIndex) and idx.tz is not None:
+        out.index = idx.tz_convert("UTC").tz_localize(None)
+    return out
+
+
+def _tiered_intraday_history_to_sqlite(conn: sqlite3.Connection, symbol: str, ticker: yf.Ticker) -> dict[str, int]:
+    """
+    Tiered intraday ladder (Yahoo limits apply; 15m beyond ~60d uses 60d rolling windows).
+    0–7d: 1m; 7–60d: 2m (excluding last 7d overlap); 61–729d: 15m in ~60d chunks.
+    Daily 730d–5y and full history are covered by separate 1d max pulls.
+    """
+    stats: dict[str, int] = {}
+    df1 = ticker.history(period="7d", interval="1m", auto_adjust=False)
+    df1 = _normalize_index_naive_utc(df1)
+    stats["1m_rows"] = _save_df_to_ohlc_sqlite(conn, symbol, "1m", df1)
+    _sleep_between_yahoo_calls()
+
+    df2 = ticker.history(period="60d", interval="2m", auto_adjust=False)
+    df2 = _normalize_index_naive_utc(df2)
+    if df2 is not None and not df2.empty:
+        cutoff = pd.Timestamp.utcnow() - pd.Timedelta(days=7)
+        df2 = df2[df2.index < cutoff]
+        stats["2m_rows"] = _save_df_to_ohlc_sqlite(conn, symbol, "2m", df2)
+    else:
+        stats["2m_rows"] = 0
+    _sleep_between_yahoo_calls()
+
+    now = pd.Timestamp.utcnow()
+    seg_end = now - pd.Timedelta(days=61)
+    seg_floor = now - pd.Timedelta(days=729)
+    total_15 = 0
+    safety = 0
+    while seg_end > seg_floor and safety < 32:
+        safety += 1
+        seg_start = max(seg_floor, seg_end - pd.Timedelta(days=60))
+        df15 = ticker.history(
+            start=seg_start.strftime("%Y-%m-%d"),
+            end=seg_end.strftime("%Y-%m-%d"),
+            interval="15m",
+            auto_adjust=False,
+        )
+        df15 = _normalize_index_naive_utc(df15)
+        if df15 is not None and not df15.empty:
+            total_15 += _save_df_to_ohlc_sqlite(conn, symbol, "15m", df15)
+        _sleep_between_yahoo_calls()
+        seg_end = seg_start - pd.Timedelta(seconds=1)
+    stats["15m_rows"] = total_15
+    return stats
+
+
 def _download_symbol_full_to_db(
     symbol: str,
     db_path: str,
@@ -403,23 +468,28 @@ def _download_symbol_full_to_db(
     intraday_15m_days: int = 60,
     intraday_1h_days: int = 730,
 ) -> dict:
+    """
+    Persist Yahoo OHLC into SQLite. Daily/weekly/monthly: max history.
+    Intraday: tiered 1m/2m/15m ladder plus 1h long intraday window (intraday_* params retained for API compat).
+    """
     _ensure_ohlc_sqlite(db_path)
     ticker = yf.Ticker(symbol)
     stats: dict[str, int] = {}
     with sqlite3.connect(db_path) as conn:
-        # Full history available from Yahoo for these intervals.
         for interval in ("1d", "1wk", "1mo"):
             df = ticker.history(period="max", interval=interval, auto_adjust=False)
+            df = _normalize_index_naive_utc(df)
             stats[f"{interval}_rows"] = _save_df_to_ohlc_sqlite(conn, symbol, interval, df)
+            _sleep_between_yahoo_calls()
 
         if include_intraday:
-            # Intraday is limited by Yahoo; we still persist the maximum allowed window.
-            i15 = max(1, int(intraday_15m_days))
+            intra = _tiered_intraday_history_to_sqlite(conn, symbol, ticker)
+            stats.update(intra)
             i1h = max(1, int(intraday_1h_days))
-            df_15m = ticker.history(period=f"{i15}d", interval="15m", auto_adjust=False)
             df_1h = ticker.history(period=f"{i1h}d", interval="1h", auto_adjust=False)
-            stats["15m_rows"] = _save_df_to_ohlc_sqlite(conn, symbol, "15m", df_15m)
+            df_1h = _normalize_index_naive_utc(df_1h)
             stats["1h_rows"] = _save_df_to_ohlc_sqlite(conn, symbol, "1h", df_1h)
+            _sleep_between_yahoo_calls()
 
         conn.commit()
 
@@ -427,7 +497,7 @@ def _download_symbol_full_to_db(
         "symbol": symbol,
         "db_path": os.path.abspath(db_path),
         "saved_rows": stats,
-        "note": "Daily/weekly/monthly use Yahoo max history. Intraday stores Yahoo maximum allowed lookback window.",
+        "note": "Daily/weekly/monthly: Yahoo max. Intraday: tiered 1m/2m/15m plus 1h window; 15m 61–729d uses 60d Yahoo windows.",
     }
 
 
@@ -644,10 +714,15 @@ def _read_local_series(symbol: str, interval: str = "1d", lookback_days: int = 3
     """
     cutoff = pd.Timestamp.utcnow() - pd.Timedelta(days=max(30, int(lookback_days)))
 
-    # 1) Parquet
+    # 1) Parquet (try filesystem-safe key first, then legacy raw symbol path)
     try:
-        p = os.path.join("local_market_data", interval, f"{symbol}.parquet")
-        if os.path.exists(p):
+        safe_key = parquet_symbol_key(symbol)
+        raw_sym = str(symbol).strip().upper()
+        parquet_paths = [os.path.join("local_market_data", interval, f"{safe_key}.parquet")]
+        if safe_key != raw_sym:
+            parquet_paths.append(os.path.join("local_market_data", interval, f"{raw_sym}.parquet"))
+        p = next((x for x in parquet_paths if os.path.exists(x)), None)
+        if p:
             df = pd.read_parquet(p)
             if not df.empty:
                 if not isinstance(df.index, pd.DatetimeIndex):
@@ -779,12 +854,15 @@ def _is_cache_stale(fetched_at: str | None, max_age_hours: int = 24) -> bool:
 
 def _fetch_and_cache_instrument_info(symbol: str) -> dict:
     info = yf.Ticker(symbol).info or {}
+    _sleep_between_yahoo_calls()
+    wiki = wikipedia_enrichment_from_yahoo(info, symbol)
+    merged = {**info, **wiki}
     db_path = _info_db_path()
     _ensure_ohlc_sqlite(db_path)
     with sqlite3.connect(db_path) as conn:
-        _save_instrument_info(conn, symbol, info)
+        _save_instrument_info(conn, symbol, merged)
         conn.commit()
-    return {"symbol": symbol, "info": info, "fetched_at": datetime.utcnow().isoformat()}
+    return {"symbol": symbol, "info": merged, "fetched_at": datetime.utcnow().isoformat()}
 
 
 def _run_bulk_info_job(job_id: str, body: BulkInfoLoadBody) -> None:
@@ -807,7 +885,10 @@ def _run_bulk_info_job(job_id: str, body: BulkInfoLoadBody) -> None:
             _set({"current": idx + 1, "current_symbol": symbol})
             try:
                 info = yf.Ticker(symbol).info or {}
-                _save_instrument_info(conn, symbol, info)
+                _sleep_between_yahoo_calls()
+                wiki = wikipedia_enrichment_from_yahoo(info, symbol)
+                merged = {**info, **wiki}
+                _save_instrument_info(conn, symbol, merged)
                 ok += 1
             except Exception as exc:
                 fail += 1
@@ -1360,6 +1441,50 @@ def research_ml_signals(body: ResearchMLSignalsBody):
     }
 
 
+def _safe_round(val, digits=2):
+    """Round numeric values safely; return None for missing/invalid."""
+    if val is None:
+        return None
+    try:
+        n = float(val)
+        if not (n == n):  # NaN check
+            return None
+        return round(n, digits)
+    except (TypeError, ValueError):
+        return None
+
+
+def _wiki_for_ticker(info: dict, symbol: str) -> dict:
+    """Get Wikipedia metadata — prefer cached instrument_info, fall back to live lookup."""
+    cached = _read_cached_instrument_info(symbol)
+    ci = (cached.get("info") or {}) if cached else {}
+    if ci.get("wikipedia_title") and ci.get("wikipedia_extract"):
+        return {
+            "wikipediaTitle": ci["wikipedia_title"],
+            "wikipediaExtract": ci["wikipedia_extract"][:4000],
+            "wikiUrl": f"https://en.wikipedia.org/wiki/{quote(ci['wikipedia_title'].replace(' ', '_'))}",
+        }
+    # Live lookup (lightweight, one call)
+    try:
+        from context.wikipedia_client import wikipedia_enrichment_from_yahoo
+        wiki = wikipedia_enrichment_from_yahoo(info or {}, symbol)
+        if wiki.get("wikipedia_title"):
+            return {
+                "wikipediaTitle": wiki["wikipedia_title"],
+                "wikipediaExtract": (wiki.get("wikipedia_extract") or "")[:4000],
+                "wikiUrl": f"https://en.wikipedia.org/wiki/{quote(wiki['wikipedia_title'].replace(' ', '_'))}",
+            }
+    except Exception:
+        pass
+    # Fallback: heuristic URL
+    name = (info.get("longName") or info.get("shortName") or symbol).replace(" ", "_")
+    return {
+        "wikipediaTitle": "",
+        "wikipediaExtract": "",
+        "wikiUrl": f"https://en.wikipedia.org/wiki/{quote(name)}",
+    }
+
+
 @app.get("/api/ticker/{symbol}")
 def get_ticker_details(symbol: str):
     try:
@@ -1369,16 +1494,21 @@ def get_ticker_details(symbol: str):
             return get_mutual_fund_details(symbol)
         profile = symbol_profile(symbol)
         ticker = yf.Ticker(symbol)
-        info = ticker.info
-        current_price = info.get("currentPrice") or info.get("regularMarketPrice", 0)
-        prev_close = info.get("previousClose") or info.get("regularMarketPreviousClose", 0)
+        info = ticker.info or {}
+
+        current_price = _safe_round(info.get("currentPrice") or info.get("regularMarketPrice"))
+        prev_close = _safe_round(info.get("previousClose") or info.get("regularMarketPreviousClose"))
         curr_symbol = CURRENCY_SYMBOLS.get(info.get("currency", "USD"), "$")
-        change = current_price - prev_close if current_price and prev_close else 0
-        change_pct = (change / prev_close) * 100 if prev_close else 0
+        change = _safe_round(current_price - prev_close) if current_price is not None and prev_close else None
+        change_pct = _safe_round((change / prev_close) * 100) if change is not None and prev_close else None
+
+        volume = info.get("volume") or info.get("regularMarketVolume")
+        avg_volume = info.get("averageVolume") or info.get("averageDailyVolume10Day")
 
         news_data = []
-        if ticker.news:
-            for n in ticker.news[:5]:
+        try:
+            raw_news = ticker.news or []
+            for n in raw_news[:5]:
                 news_data.append(
                     {
                         "title": n.get("title", "Market Update"),
@@ -1386,35 +1516,50 @@ def get_ticker_details(symbol: str):
                         "publisher": n.get("publisher", "Market Feed"),
                     }
                 )
+        except Exception:
+            pass
+
+        wiki = _wiki_for_ticker(info, symbol)
+        yahoo_desc = info.get("longBusinessSummary") or ""
 
         return {
             "symbol": symbol,
-            "name": info.get("shortName", info.get("longName", symbol)),
-            "longName": info.get("longName", info.get("shortName", symbol)),
-            "price": round(current_price, 2),
-            "prevClose": round(prev_close, 2),
+            "name": info.get("shortName") or info.get("longName") or symbol,
+            "longName": info.get("longName") or info.get("shortName") or symbol,
+            "price": current_price,
+            "previousClose": prev_close,
+            "prevClose": prev_close,  # keep legacy alias
             "currencySymbol": curr_symbol,
-            "change": round(change, 2),
-            "changePct": round(change_pct, 2),
-            "marketCap": info.get("marketCap", 0),
-            "peRatio": round(info.get("trailingPE", 0), 2) if info.get("trailingPE") else "N/A",
-            "high52": round(info.get("fiftyTwoWeekHigh", 0), 2) if info.get("fiftyTwoWeekHigh") else "N/A",
-            "low52": round(info.get("fiftyTwoWeekLow", 0), 2) if info.get("fiftyTwoWeekLow") else "N/A",
-            "sector": info.get("sector", "N/A"),
-            "industry": info.get("industry", profile["category_label"] or "N/A"),
+            "change": change,
+            "changePct": change_pct,
+            "marketCap": info.get("marketCap"),
+            "peRatio": _safe_round(info.get("trailingPE")),
+            "eps": _safe_round(info.get("trailingEps")),
+            "dividendYield": _safe_round(info.get("dividendYield"), 4),
+            "beta": _safe_round(info.get("beta")),
+            "high52": _safe_round(info.get("fiftyTwoWeekHigh")),
+            "low52": _safe_round(info.get("fiftyTwoWeekLow")),
+            "volume": volume,
+            "avgVolume": avg_volume,
+            "sector": info.get("sector") or None,
+            "industry": info.get("industry") or profile.get("category_label") or None,
             "assetFamily": profile["asset_family"],
             "marketRegion": profile["region"],
             "marketExchange": profile["exchange"],
             "isProxy": profile["is_proxy"],
             "categories": profile["categories"],
             "categoryLabel": profile["category_label"],
-            "website": info.get("website", ""),
-            "wikiUrl": f"https://en.wikipedia.org/wiki/{quote((info.get('longName') or info.get('shortName') or symbol).replace(' ', '_'))}",
+            "website": info.get("website") or "",
+            "wikiUrl": wiki["wikiUrl"],
+            "wikipediaTitle": wiki["wikipediaTitle"],
+            "wikipediaExtract": wiki["wikipediaExtract"],
             "yahooUrl": f"https://finance.yahoo.com/quote/{quote(symbol)}",
-            "description": info.get("longBusinessSummary", "No company profile available for this asset."),
-            "news": news_data
+            "description": wiki["wikipediaExtract"] if wiki["wikipediaExtract"] else (yahoo_desc or "No description available for this instrument."),
+            "yahooDescription": yahoo_desc,
+            "news": news_data,
         }
     except Exception as e:
+        logger.warning("get_ticker_details %s failed: %s", symbol, e)
         return {"error": str(e)}
 
 
@@ -1575,7 +1720,8 @@ def download_ticker_data_on_demand(symbol: str):
         for tf, period, interval in [("1h", "730d", "1h"), ("1d", "max", "1d"), ("1wk", "max", "1wk"), ("1mo", "max", "1mo")]:
             df = ticker.history(period=period, interval=interval)
             if not df.empty:
-                df.to_parquet(f"{data_dir}/{tf}/{symbol}.parquet")
+                key = parquet_symbol_key(symbol)
+                df.to_parquet(f"{data_dir}/{tf}/{key}.parquet")
                 stats[f"{tf}_rows"] = len(df)
         logger.info("on-demand parquet download %s: %s", symbol, stats)
         return {"status": "success", "records_saved": stats}

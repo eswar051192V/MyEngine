@@ -1,5 +1,5 @@
 .pf-page {
-  padding-top: 18px;
+  padding-top: var(--md-space-5);
 }
 
 .pf-dock-layout {
@@ -134,14 +134,13 @@
 
 .pf-ai-hero {
   display: grid;
-  gap: 14px;
-  padding: 14px 16px 16px;
-  border-radius: 18px;
-  border-color: rgba(212, 175, 55, 0.12);
-  box-shadow: 0 10px 24px rgba(10, 12, 18, 0.1);
+  gap: var(--md-space-4);
+  padding: var(--md-space-4);
+  border-radius: var(--md-radius-xl);
+  border-color: var(--md-border);
+  box-shadow: var(--md-elevation-2);
   background:
-    radial-gradient(circle at top left, rgba(212, 175, 55, 0.18), transparent 42%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01)),
+    radial-gradient(circle at top left, var(--md-accent-muted), transparent 42%),
     var(--md-surface);
 }
 
@@ -207,13 +206,12 @@
 }
 
 .pf-context-card {
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
-  padding: 13px 14px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--md-border);
+  border-radius: var(--md-radius-lg);
+  padding: var(--md-space-3) var(--md-space-4);
+  background: var(--md-surface-container);
   display: grid;
-  gap: 5px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  gap: var(--md-space-1);
 }
 
 .pf-context-card span {
@@ -236,8 +234,7 @@
 
 .pf-hero-card {
   background:
-    radial-gradient(circle at top left, rgba(212, 175, 55, 0.12), transparent 45%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0)),
+    radial-gradient(circle at top left, var(--md-accent-muted), transparent 45%),
     var(--md-surface);
 }
 
@@ -246,9 +243,9 @@
 .pf-sequence-side > .md-home-panel,
 .pf-lower-grid > .md-home-panel,
 .pf-holdings-panel {
-  border-radius: 18px;
-  padding: 13px 14px 14px;
-  box-shadow: 0 8px 18px rgba(10, 12, 18, 0.05);
+  border-radius: var(--md-radius-xl);
+  padding: var(--md-space-4);
+  box-shadow: var(--md-elevation-1);
 }
 
 .pf-hero-card__top {
@@ -315,12 +312,17 @@
 
 .pf-kpi-card {
   border: 1px solid var(--md-border);
-  border-radius: 14px;
-  padding: 13px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015));
+  border-radius: var(--md-radius-md);
+  padding: var(--md-space-3);
+  background: var(--md-surface-container);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--md-space-1);
+  transition: box-shadow var(--md-motion-std);
+}
+
+.pf-kpi-card:hover {
+  box-shadow: var(--md-elevation-1);
 }
 
 .pf-kpi-card span {
@@ -347,12 +349,17 @@
 
 .pf-stat-card {
   border: 1px solid var(--md-border);
-  border-radius: 14px;
-  background: rgba(0, 0, 0, 0.12);
-  padding: 13px;
+  border-radius: var(--md-radius-md);
+  background: var(--md-surface-container);
+  padding: var(--md-space-3);
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: var(--md-space-1);
+  transition: box-shadow var(--md-motion-std);
+}
+
+.pf-stat-card:hover {
+  box-shadow: var(--md-elevation-1);
 }
 
 .pf-stat-card span,
@@ -374,15 +381,15 @@
   width: 100%;
   text-align: left;
   border: 1px solid var(--md-border);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.022);
+  border-radius: var(--md-radius-md);
+  background: var(--md-surface-container);
   cursor: pointer;
-  transition: border-color 150ms ease, transform 150ms ease, background 150ms ease;
+  transition: all var(--md-motion-std);
 }
 
 .pf-rollup-card--active {
-  border-color: rgba(212, 175, 55, 0.45);
-  background: rgba(212, 175, 55, 0.08);
+  border-color: var(--md-accent);
+  background: var(--md-accent-muted);
 }
 
 .pf-workspace-grid {
@@ -411,9 +418,16 @@
 .pf-actions-card,
 .pf-side-card {
   border: 1px solid var(--md-border);
-  border-radius: 16px;
-  padding: 15px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.028), rgba(255, 255, 255, 0.012));
+  border-radius: var(--md-radius-lg);
+  padding: var(--md-space-4);
+  background: var(--md-surface);
+  box-shadow: var(--md-elevation-1);
+  transition: box-shadow var(--md-motion-std);
+}
+
+.pf-actions-card:hover,
+.pf-side-card:hover {
+  box-shadow: var(--md-elevation-2);
 }
 
 .pf-actions-card__head,
@@ -525,11 +539,16 @@
 
 .pf-health-tile {
   border: 1px solid var(--md-border);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.03);
-  padding: 12px;
+  border-radius: var(--md-radius-md);
+  background: var(--md-surface-container);
+  padding: var(--md-space-3);
   display: grid;
-  gap: 4px;
+  gap: var(--md-space-1);
+  transition: box-shadow var(--md-motion-std);
+}
+
+.pf-health-tile:hover {
+  box-shadow: var(--md-elevation-1);
 }
 
 .pf-health-tile span {
@@ -558,10 +577,10 @@
   width: 100%;
   text-align: left;
   border: 1px solid var(--md-border);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--md-radius-md);
+  background: var(--md-surface-container);
   cursor: pointer;
-  transition: border-color 150ms ease, transform 150ms ease, background 150ms ease;
+  transition: all var(--md-motion-std);
 }
 
 .pf-holding-card__top,
@@ -602,8 +621,9 @@
 .pf-rollup-card:hover,
 .pf-holding-card:hover {
   transform: translateY(-1px);
-  border-color: rgba(212, 175, 55, 0.24);
-  background: rgba(255, 255, 255, 0.038);
+  border-color: var(--md-border-strong);
+  background: var(--md-surface-container-high);
+  box-shadow: var(--md-elevation-1);
 }
 
 .pf-copilot-head {
@@ -646,15 +666,12 @@
 
 .pf-copilot-answer {
   border: 1px solid var(--md-border);
-  border-radius: 18px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.038), rgba(255, 255, 255, 0.018)),
-    rgba(255, 255, 255, 0.02);
-  padding: 14px 15px;
+  border-radius: var(--md-radius-lg);
+  background: var(--md-surface-container);
+  padding: var(--md-space-4);
   min-height: 150px;
   white-space: pre-wrap;
   line-height: 1.62;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
 .pf-copilot-answer--hero {
@@ -666,8 +683,8 @@
 }
 
 .pf-copilot-answer--error {
-  border-color: rgba(248, 113, 113, 0.35);
-  background: rgba(248, 113, 113, 0.08);
+  border-color: var(--md-down);
+  background: color-mix(in srgb, var(--md-down) 8%, var(--md-surface));
 }
 
 .pf-copilot-meta {
@@ -735,8 +752,8 @@
 
 .pf-rail-panel__actions .md-btn:hover:not(:disabled) {
   color: var(--md-text);
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(212, 175, 55, 0.28);
+  background: var(--md-surface-container-high);
+  border-color: color-mix(in srgb, var(--md-accent) 30%, transparent);
 }
 
 .pf-rail-panel__summary {
@@ -785,21 +802,21 @@
 }
 
 .pf-rail-rollup .pf-rollup-card {
-  border-radius: 12px;
-  padding: 10px 11px;
+  border-radius: var(--md-radius-md);
+  padding: var(--md-space-3);
   background: transparent;
-  border-color: rgba(255, 255, 255, 0.07);
+  border-color: var(--md-border);
 }
 
 .pf-rail-rollup .pf-rollup-card:hover {
   transform: none;
-  background: rgba(255, 255, 255, 0.028);
-  border-color: rgba(212, 175, 55, 0.22);
+  background: var(--md-surface-container);
+  border-color: var(--md-border-strong);
 }
 
 .pf-rail-rollup .pf-rollup-card--active {
-  background: rgba(212, 175, 55, 0.07);
-  border-color: rgba(212, 175, 55, 0.45);
+  background: var(--md-accent-muted);
+  border-color: var(--md-accent);
 }
 
 .pf-rollup-card__row {
@@ -829,9 +846,9 @@
 
 .pf-signal-card {
   border: 1px solid var(--md-border);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.025);
-  padding: 11px 12px;
+  border-radius: var(--md-radius-md);
+  background: var(--md-surface-container);
+  padding: var(--md-space-3);
 }
 
 .pf-signal-card__head {
@@ -856,13 +873,13 @@
 
 .pf-entry-card {
   border: 1px dashed var(--md-border-strong);
-  border-radius: 16px;
-  padding: 18px;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.06), rgba(255, 255, 255, 0.02));
+  border-radius: var(--md-radius-lg);
+  padding: var(--md-space-5);
+  background: var(--md-surface-container);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: var(--md-space-4);
 }
 
 .pf-entry-card__copy {
@@ -1042,11 +1059,17 @@
 
 .pf-holding-mini-card {
   border: 1px solid var(--md-border);
-  border-radius: 16px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.028), rgba(255, 255, 255, 0.012));
-  padding: 12px;
+  border-radius: var(--md-radius-lg);
+  background: var(--md-surface);
+  box-shadow: var(--md-elevation-1);
+  padding: var(--md-space-3);
   display: grid;
-  gap: 10px;
+  gap: var(--md-space-3);
+  transition: box-shadow var(--md-motion-std);
+}
+
+.pf-holding-mini-card:hover {
+  box-shadow: var(--md-elevation-2);
 }
 
 .pf-holding-mini-card__top {
@@ -1079,15 +1102,15 @@
 .pf-holding-mini-card__portfolio {
   display: inline-flex;
   align-items: center;
-  margin-top: 6px;
-  padding: 4px 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(212, 175, 55, 0.28);
-  background: rgba(212, 175, 55, 0.08);
+  margin-top: var(--md-space-2);
+  padding: var(--md-space-1) var(--md-space-2);
+  border-radius: var(--md-radius-pill);
+  border: 1px solid color-mix(in srgb, var(--md-accent) 30%, transparent);
+  background: var(--md-accent-muted);
   color: var(--md-accent);
   font-family: var(--md-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.08em;
+  font-size: var(--md-type-label-sm);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
@@ -1153,12 +1176,17 @@
 .pf-transaction-row {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(240px, 0.9fr) minmax(230px, auto);
-  gap: 12px;
+  gap: var(--md-space-3);
   align-items: center;
-  padding: 12px 14px;
+  padding: var(--md-space-3) var(--md-space-4);
   border: 1px solid var(--md-border);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--md-radius-md);
+  background: var(--md-surface-container);
+  transition: background var(--md-motion-std);
+}
+
+.pf-transaction-row:hover {
+  background: var(--md-surface-container-high);
 }
 
 .pf-transaction-row__main,
@@ -1227,11 +1255,16 @@
 
 .pf-idea-card {
   display: grid;
-  gap: 8px;
-  padding: 14px;
+  gap: var(--md-space-2);
+  padding: var(--md-space-4);
   border: 1px solid var(--md-border);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--md-radius-md);
+  background: var(--md-surface-container);
+  transition: box-shadow var(--md-motion-std);
+}
+
+.pf-idea-card:hover {
+  box-shadow: var(--md-elevation-1);
 }
 
 .pf-idea-list {
@@ -1279,11 +1312,11 @@
 
 .pf-ladder-card {
   display: grid;
-  gap: 8px;
-  padding: 14px;
-  border-radius: 14px;
+  gap: var(--md-space-2);
+  padding: var(--md-space-4);
+  border-radius: var(--md-radius-md);
   border: 1px solid var(--md-border);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--md-surface-container);
 }
 
 .pf-ladder-step {
@@ -1313,11 +1346,11 @@
 
 .pf-heatmap-cell {
   display: grid;
-  gap: 4px;
-  padding: 12px;
-  border-radius: 12px;
+  gap: var(--md-space-1);
+  padding: var(--md-space-3);
+  border-radius: var(--md-radius-md);
   border: 1px solid var(--md-border);
-  background: var(--md-bg-deep);
+  background: var(--md-surface-container);
 }
 
 .pf-heatmap-cell span,
@@ -1392,9 +1425,10 @@
 }
 
 .portfolio-row--rich {
-  border-radius: 16px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.028), rgba(255, 255, 255, 0.012));
-  padding: 12px 13px;
+  border-radius: var(--md-radius-lg);
+  background: var(--md-surface);
+  padding: var(--md-space-3);
+  box-shadow: var(--md-elevation-1);
 }
 
 @media (max-width: 1480px) {
@@ -1655,14 +1689,14 @@
 }
 
 .pf-workspace-v2__rollup-item:hover {
-  border-color: rgba(212, 175, 55, 0.35);
-  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--md-border-strong);
+  background: var(--md-surface-container);
 }
 
 .pf-workspace-v2__rollup-item--active {
-  border-color: rgba(212, 175, 55, 0.45);
-  background: color-mix(in srgb, var(--mdl-tint-bg) 35%, rgba(212, 175, 55, 0.1));
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mdl-tint-glow) 25%, transparent);
+  border-color: var(--md-accent);
+  background: var(--md-accent-muted);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--md-accent) 15%, transparent);
 }
 
 .pf-workspace-v2__rollup-top {

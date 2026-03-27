@@ -1,45 +1,140 @@
 /* =============================================================================
-   Market Design Language (MDL)
-   Tokens: --md-* on .md-app[data-theme]. Surfaces: .md-home-panel, .mdl-surface.
-   Actions: .md-btn (pill), .mdl-pill (tag). Typography: .md-type-* utilities below.
+   Market Design Language (MDL) — Material-Inspired Token Foundation
+   Tokens: --md-* on :root and .md-app[data-theme].
+   Elevation: --md-elevation-*. Spacing: --md-space-*. Radius: --md-radius-*.
+   Typography: --md-type-*. Motion: --md-motion-*. State layers: --md-state-*.
    ============================================================================= */
 
 :root {
-  --md-radius-pill: 999px;
+  /* --- Radius scale (Material shape) --- */
+  --md-radius-xs: 4px;
+  --md-radius-sm: 8px;
+  --md-radius-md: 12px;
+  --md-radius-lg: 16px;
+  --md-radius-xl: 24px;
   --md-radius-card: 16px;
-  --md-btn-min-h: 34px;
-  --md-type-eyebrow: 0.58rem;
-  --md-type-label: 0.65rem;
-  --md-type-body: 0.78rem;
-  --md-type-title: 1.05rem;
-  --md-type-display: 1.35rem;
+  --md-radius-pill: 999px;
+
+  /* --- Spacing ramp (4px base) --- */
+  --md-space-1: 4px;
+  --md-space-2: 8px;
+  --md-space-3: 12px;
+  --md-space-4: 16px;
+  --md-space-5: 20px;
+  --md-space-6: 24px;
+  --md-space-7: 32px;
+  --md-space-8: 40px;
+  --md-space-9: 48px;
+  --md-space-10: 64px;
+
+  /* --- Typography scale (Material M3-inspired) --- */
+  --md-type-eyebrow: 0.6875rem;    /* 11px */
+  --md-type-label-sm: 0.6875rem;   /* 11px */
+  --md-type-label: 0.75rem;        /* 12px */
+  --md-type-body-sm: 0.8125rem;    /* 13px */
+  --md-type-body: 0.875rem;        /* 14px */
+  --md-type-body-lg: 1rem;         /* 16px */
+  --md-type-title-sm: 0.875rem;    /* 14px */
+  --md-type-title: 1.125rem;       /* 18px */
+  --md-type-title-lg: 1.375rem;    /* 22px */
+  --md-type-headline: 1.75rem;     /* 28px */
+  --md-type-display: 2.25rem;      /* 36px */
   --md-track: 0.02em;
+
+  /* --- Font stacks --- */
+  --md-font: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --md-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* --- Layout constants --- */
+  --md-header-h: 56px;
+  --md-ribbon-h: 44px;
+  --md-sidebar-w: 256px;
+  --md-content-max: 1440px;
+
+  /* --- Button --- */
+  --md-btn-min-h: 36px;
+  --md-btn-min-h-sm: 30px;
+
+  /* --- Motion (Material M3-inspired) --- */
+  --md-motion-std: 200ms cubic-bezier(0.2, 0, 0, 1);
+  --md-motion-emphasis: 400ms cubic-bezier(0.05, 0.7, 0.1, 1);
+  --md-motion-decel: 250ms cubic-bezier(0, 0, 0, 1);
+  --md-motion-accel: 150ms cubic-bezier(0.3, 0, 1, 1);
+
+  /* --- State layer opacities --- */
+  --md-state-hover: 0.08;
+  --md-state-focus: 0.12;
+  --md-state-pressed: 0.12;
+  --md-state-dragged: 0.16;
+  --md-state-selected: 0.08;
+
+  /* --- Elevation (shadow levels) --- */
+  --md-elevation-0: none;
+  --md-elevation-1: 0 1px 3px 1px rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  --md-elevation-2: 0 2px 6px 2px rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  --md-elevation-3: 0 4px 8px 3px rgba(0, 0, 0, 0.08), 0 1px 3px 0 rgba(0, 0, 0, 0.06);
+  --md-elevation-4: 0 6px 10px 4px rgba(0, 0, 0, 0.08), 0 2px 3px 0 rgba(0, 0, 0, 0.06);
+  --md-elevation-5: 0 8px 12px 6px rgba(0, 0, 0, 0.08), 0 4px 4px 0 rgba(0, 0, 0, 0.06);
+
+  /* --- Icon sizing --- */
+  --md-icon-xs: 14px;
+  --md-icon-sm: 18px;
+  --md-icon-md: 24px;
+  --md-icon-lg: 32px;
+
+  /* --- Z-index scale --- */
+  --md-z-base: 0;
+  --md-z-sticky: 10;
+  --md-z-dropdown: 20;
+  --md-z-overlay: 30;
+  --md-z-modal: 40;
+  --md-z-toast: 50;
 }
 
+/* --- Global reset & baseline --- */
 .md-app {
   font-feature-settings: "kern" 1, "liga" 1;
   text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
 }
 
-/* Semantic text utilities (optional; prefer tokens + existing headings) */
+/* --- Typography utilities --- */
 .md-type-eyebrow {
   font-size: var(--md-type-eyebrow);
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--md-faint);
+  line-height: 1.2;
 }
 
 .md-type-label {
   font-size: var(--md-type-label);
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--md-muted);
+  line-height: 1.33;
+}
+
+.md-type-label-sm {
+  font-size: var(--md-type-label-sm);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--md-faint);
+  line-height: 1.33;
 }
 
 .md-type-body {
   font-size: var(--md-type-body);
+  line-height: 1.5;
+  color: var(--md-text);
+}
+
+.md-type-body-sm {
+  font-size: var(--md-type-body-sm);
   line-height: 1.45;
   color: var(--md-text);
 }
@@ -51,15 +146,47 @@
 
 .md-type-title {
   font-size: var(--md-type-title);
-  font-weight: 800;
-  letter-spacing: var(--md-track);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--md-text);
+  line-height: 1.28;
+}
+
+.md-type-title-lg {
+  font-size: var(--md-type-title-lg);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--md-text);
+  line-height: 1.27;
+}
+
+.md-type-headline {
+  font-size: var(--md-type-headline);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
   color: var(--md-text);
 }
 
 .md-type-display {
   font-size: var(--md-type-display);
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1.15;
   color: var(--md-text);
 }
+
+/* --- Elevation utility classes --- */
+.md-elevated-1 { box-shadow: var(--md-elevation-1); }
+.md-elevated-2 { box-shadow: var(--md-elevation-2); }
+.md-elevated-3 { box-shadow: var(--md-elevation-3); }
+.md-elevated-4 { box-shadow: var(--md-elevation-4); }
+.md-elevated-5 { box-shadow: var(--md-elevation-5); }
+
+/* --- Spacing utility classes --- */
+.md-gap-1 { gap: var(--md-space-1); }
+.md-gap-2 { gap: var(--md-space-2); }
+.md-gap-3 { gap: var(--md-space-3); }
+.md-gap-4 { gap: var(--md-space-4); }
+.md-gap-5 { gap: var(--md-space-5); }
+.md-gap-6 { gap: var(--md-space-6); }

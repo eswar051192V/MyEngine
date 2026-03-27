@@ -21,6 +21,14 @@ DATA_DIR = os.environ.get("MARKET_DATA_DIR", "local_market_data")
 TICKERS_JSON = os.environ.get("TICKERS_JSON", os.path.join(_REPO_ROOT, "all_global_tickers.json"))
 
 
+def parquet_symbol_key(symbol: str) -> str:
+    """Filesystem-safe basename for Parquet files (e.g. MF:123 -> MF_123)."""
+    s = str(symbol).strip().upper()
+    for ch in (":", "/", "\\", "?", "*", "|", '"', "<", ">"):
+        s = s.replace(ch, "_")
+    return s
+
+
 def setup_directories() -> None:
     for sub in ("15m", "1h", "1d", "1wk", "1mo", "options"):
         os.makedirs(f"{DATA_DIR}/{sub}", exist_ok=True)
@@ -131,24 +139,28 @@ def all_symbols_flat() -> list[str]:
 
 
 def download_ticker_data(symbol: str) -> bool:
+    key = parquet_symbol_key(symbol)
     ticker = yf.Ticker(symbol)
     try:
         ok = False
         df_15m = ticker.history(period="60d", interval="15m")
         if not df_15m.empty:
-            df_15m.to_parquet(f"{DATA_DIR}/15m/{symbol}.parquet")
+            df_15m.to_parquet(f"{DATA_DIR}/15m/{key}.parquet")
             ok = True
+        time.sleep(0.5)
         df_1h = ticker.history(period="730d", interval="1h")
         if not df_1h.empty:
-            df_1h.to_parquet(f"{DATA_DIR}/1h/{symbol}.parquet")
+            df_1h.to_parquet(f"{DATA_DIR}/1h/{key}.parquet")
             ok = True
+        time.sleep(0.5)
         df_1d = ticker.history(period="max", interval="1d")
         if not df_1d.empty:
-            df_1d.to_parquet(f"{DATA_DIR}/1d/{symbol}.parquet")
+            df_1d.to_parquet(f"{DATA_DIR}/1d/{key}.parquet")
             ok = True
+        time.sleep(0.5)
         df_1wk = ticker.history(period="max", interval="1wk")
         if not df_1wk.empty:
-            df_1wk.to_parquet(f"{DATA_DIR}/1wk/{symbol}.parquet")
+            df_1wk.to_parquet(f"{DATA_DIR}/1wk/{key}.parquet")
             ok = True
         return ok
     except Exception as exc:
@@ -170,7 +182,7 @@ def download_eod_bar(symbol: str, interval: str = "1d") -> bool:
         _save_df_to_sqlite(sym, interval, tail)
         if interval in {"1d", "1wk", "1mo"}:
             folder = interval
-            path = os.path.join(DATA_DIR, folder, f"{sym}.parquet")
+            path = os.path.join(DATA_DIR, folder, f"{parquet_symbol_key(sym)}.parquet")
             _append_parquet(path, tail)
         return True
     except Exception as exc:
@@ -281,7 +293,7 @@ def batch_fetch_live_quotes(symbols: list[str]) -> dict[str, dict]:
 
 def download_symbols(
     symbols: list[str],
-    sleep_seconds: float = 1.5,
+    sleep_seconds: float = 0.5,
     on_progress: Callable[[int, int, str], None] | None = None,
 ) -> dict:
     setup_directories()

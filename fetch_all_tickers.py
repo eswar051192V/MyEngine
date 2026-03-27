@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import io
 import json
+import re
+import time
 
 import pandas as pd
 import requests
@@ -16,6 +18,46 @@ HEADERS = {
         "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     )
 }
+
+# BSE JSON API expects browser-like headers; old ?flag=true URLs now redirect to HTML.
+BSE_API_LIST = "https://api.bseindia.com/BseIndiaAPI/api/ListofScripData/w"
+# All listing groups that can contain Equity segment (aligned with BSE India API docs / unofficial clients).
+BSE_EQUITY_GROUPS = (
+    "A",
+    "B",
+    "E",
+    "F",
+    "FC",
+    "GC",
+    "I",
+    "IF",
+    "IP",
+    "M",
+    "MS",
+    "MT",
+    "P",
+    "R",
+    "T",
+    "TS",
+    "W",
+    "X",
+    "XD",
+    "XT",
+    "Y",
+    "Z",
+    "ZP",
+    "ZY",
+)
+
+
+def _yahoo_bse_symbol(scrip_id: str, scrip_cd: str) -> str | None:
+    """Map BSE row to Yahoo Finance symbol (e.g. M&M.BO)."""
+    raw = (scrip_id or scrip_cd or "").strip().upper()
+    if not raw:
+        return None
+    if not re.fullmatch(r"[A-Z0-9&\-]+", raw):
+        return None
+    return f"{raw}.BO"
 
 
 def _dedupe(symbols: list[str]) -> list[str]:
@@ -72,42 +114,83 @@ def get_indian_markets() -> dict[str, list[str]]:
 
 
 def get_bse_markets() -> dict[str, list[str]]:
-    """Fetch BSE Group A equities (large-cap, actively traded) with .BO Yahoo suffix."""
-    print("Fetching BSE equity list (Group A)...")
+    """Fetch all active BSE Equity listings (all groups) as Yahoo `.BO` symbols."""
+    print("Fetching BSE equity list (active, all groups via BSE India API)...")
     session = requests.Session()
-    session.headers.update(HEADERS)
-
-    BSE_SCRIP_URLS = [
-        "https://api.bseindia.com/BseIndiaAPI/api/ListofScripData/w?Group=A&flag=true",
-        "https://api.bseindia.com/BseIndiaAPI/api/ListofScripData/w?Group=B&flag=true",
-    ]
+    session.headers.update(
+        {
+            **HEADERS,
+            "Accept": "application/json, text/plain, */*",
+            "Origin": "https://www.bseindia.com/",
+            "Referer": "https://www.bseindia.com/",
+        }
+    )
 
     symbols: list[str] = []
-    for url in BSE_SCRIP_URLS:
+    for group in BSE_EQUITY_GROUPS:
+        params = {
+            "Group": group,
+            "segment": "Equity",
+            "status": "Active",
+            "scripcode": "",
+            "industry": "",
+        }
         try:
-            resp = session.get(url, timeout=45)
+            resp = session.get(BSE_API_LIST, params=params, timeout=60)
             resp.raise_for_status()
             data = resp.json()
-            if isinstance(data, list):
-                for item in data:
-                    scrip_cd = str(item.get("SCRIP_CD", "") or "").strip()
-                    scrip_id = str(item.get("scrip_id", "") or "").strip()
-                    ticker = scrip_id or scrip_cd
-                    if ticker and ticker.isalnum():
-                        symbols.append(f"{ticker}.BO")
         except Exception as exc:
-            print(f"  Warning: BSE API error for {url}: {exc}")
+            print(f"  Warning: BSE API error for group {group}: {exc}")
+            time.sleep(0.2)
+            continue
 
-    if not symbols:
-        print("  BSE API returned no data; adding curated BSE-only tickers as fallback.")
-        symbols = [
-            "RELIANCE.BO", "TCS.BO", "HDFCBANK.BO", "INFY.BO", "ICICIBANK.BO",
-            "HINDUNILVR.BO", "SBIN.BO", "BHARTIARTL.BO", "KOTAKBANK.BO", "ITC.BO",
-            "LT.BO", "AXISBANK.BO", "BAJFINANCE.BO", "MARUTI.BO", "HCLTECH.BO",
-            "ASIANPAINT.BO", "SUNPHARMA.BO", "TATAMOTORS.BO", "WIPRO.BO", "NTPC.BO",
-            "TITAN.BO", "ULTRACEMCO.BO", "TECHM.BO", "POWERGRID.BO", "ONGC.BO",
-            "NESTLEIND.BO", "BAJAJFINSV.BO", "ADANIENT.BO", "ADANIPORTS.BO", "JSWSTEEL.BO",
-        ]
+        if isinstance(data, list):
+            for item in data:
+                scrip_cd = str(item.get("SCRIP_CD", "") or "").strip()
+                scrip_id = str(item.get("scrip_id", "") or "").strip()
+                y = _yahoo_bse_symbol(scrip_id, scrip_cd)
+                if y:
+                    symbols.append(y)
+        else:
+            print(f"  Warning: BSE API group {group}: unexpected payload type {type(data).__name__}")
+        time.sleep(0.15)
+
+    if len(symbols) < 500:
+        print("  BSE API returned very few symbols; adding curated BSE-only tickers as fallback.")
+        symbols.extend(
+            [
+                "RELIANCE.BO",
+                "TCS.BO",
+                "HDFCBANK.BO",
+                "INFY.BO",
+                "ICICIBANK.BO",
+                "HINDUNILVR.BO",
+                "SBIN.BO",
+                "BHARTIARTL.BO",
+                "KOTAKBANK.BO",
+                "ITC.BO",
+                "LT.BO",
+                "AXISBANK.BO",
+                "BAJFINANCE.BO",
+                "MARUTI.BO",
+                "HCLTECH.BO",
+                "ASIANPAINT.BO",
+                "SUNPHARMA.BO",
+                "TATAMOTORS.BO",
+                "WIPRO.BO",
+                "NTPC.BO",
+                "TITAN.BO",
+                "ULTRACEMCO.BO",
+                "TECHM.BO",
+                "POWERGRID.BO",
+                "ONGC.BO",
+                "NESTLEIND.BO",
+                "BAJAJFINSV.BO",
+                "ADANIENT.BO",
+                "ADANIPORTS.BO",
+                "JSWSTEEL.BO",
+            ]
+        )
 
     deduped = _dedupe(sorted(symbols))
     print(f"  BSE equity: {len(deduped)} symbols")

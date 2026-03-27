@@ -1960,21 +1960,22 @@ function useQuantEngine() {
               
               setTickerDetails(await detailRes.json());
               const rawOhlc = await ohlcRes.json();
-              setOhlcData(rawOhlc);
+              const ohlcSeries = Array.isArray(rawOhlc) ? rawOhlc : [];
+              setOhlcData(ohlcRes.ok ? ohlcSeries : []);
               setOptionsData(await optRes.json());
       
-              if (autoScan && rawOhlc.length > 0) {
+              if (autoScan && ohlcSeries.length > 0) {
                   setMathCalculating(true);
                   setTimeout(() => {
-                      const all = enumerateAllPitchforks(rawOhlc, screenerLookback, pitchforkType);
+                      const all = enumerateAllPitchforks(ohlcSeries, screenerLookback, pitchforkType);
                       setDetectedPivots(all);
                       setActivePivotIndex(0);
                       setHasScannedPitchforks(true);
                       if (all.length > 0) {
                           const startIdx = Math.max(0, all[0].dataIndex - 12);
                           setChartZoom({
-                              min: new Date(rawOhlc[startIdx].x).getTime(),
-                              max: new Date(rawOhlc[rawOhlc.length - 1].x).getTime(),
+                              min: new Date(ohlcSeries[startIdx].x).getTime(),
+                              max: new Date(ohlcSeries[ohlcSeries.length - 1].x).getTime(),
                           });
                       }
                       setMathCalculating(false);

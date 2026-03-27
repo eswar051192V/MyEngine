@@ -30,6 +30,29 @@ const ASSET_TYPE_ICONS = {
 
 const SPECIAL_PANELS = ['mf-browser', 'gold-silver'];
 
+/** Sort universe category sections by backend asset_family, then label */
+const ASSET_FAMILY_ORDER = [
+    'equity',
+    'etf',
+    'index',
+    'mutual_fund',
+    'futures',
+    'commodity',
+    'forex',
+    'crypto',
+    'bond',
+    'instrument',
+    'other',
+];
+
+function familyRank(fam) {
+    const f = (fam || '').toLowerCase();
+    const i = ASSET_FAMILY_ORDER.indexOf(f);
+    return i === -1 ? 50 : i;
+}
+
+const YAHOO_BATCH_SLEEP = 0.5;
+
 function fmtBig(n) {
     if (n == null || isNaN(n)) return '--';
     const abs = Math.abs(n);
@@ -82,6 +105,9 @@ export default function UniversePage({ state, setState, openAnalysisSymbol, open
     const dlPollRef = useRef(null);
     const [fullDataJob, setFullDataJob] = useState(null);
     const fullDlPollRef = useRef(null);
+    const [infoJob, setInfoJob] = useState(null);
+    const infoPollRef = useRef(null);
+    const [sectionExpanded, setSectionExpanded] = useState({});
 
     const toggleSelect = useCallback((sym) => {
         setSelectedSymbols((prev) => {
@@ -108,7 +134,7 @@ export default function UniversePage({ state, setState, openAnalysisSymbol, open
             const r = await fetch(`${API_BASE}/api/admin/redownload-all`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ symbols: [...selectedSymbols], sleep_seconds: 0.75 }),
+                body: JSON.stringify({ symbols: [...selectedSymbols], sleep_seconds: YAHOO_BATCH_SLEEP }),
             });
             const d = await r.json();
             if (d.ok && d.job_id) {
@@ -145,10 +171,73 @@ export default function UniversePage({ state, setState, openAnalysisSymbol, open
         return () => clearInterval(fullDlPollRef.current);
     }, [fullDataJob?.job_id, fullDataJob?.status]);
 
+    useEffect(() => {
+        if (infoPollRef.current) clearInterval(infoPollRef.current);
+        if (!infoJob?.job_id || infoJob.status === 'completed' || infoJob.status === 'failed') return undefined;
+        infoPollRef.current = setInterval(async () => {
+            try {
+                const r = await fetch(`${API_BASE}/api/admin/bulk-info-load-status/${infoJob.job_id}`);
+                const d = await r.json();
+                if (d.ok) setInfoJob(d);
+                if (d.status === 'completed' || d.status === 'failed') clearInterval(infoPollRef.current);
+            } catch (_) { /* ignore */ }
+        }, 2000);
+        return () => clearInterval(infoPollRef.current);
+    }, [infoJob?.job_id, infoJob?.status]);
+
     const jobsRunning = Boolean(
         (dlJob && (dlJob.status === 'queued' || dlJob.status === 'running'))
         || (fullDataJob && (fullDataJob.status === 'queued' || fullDataJob.status === 'running'))
+        || (infoJob && (infoJob.status === 'queued' || infoJob.status === 'running'))
     );
+
+    const startBulkInfoSelected = useCallback(async () => {
+        if (!selectedSymbols.size || jobsRunning) return;
+        if (!window.confirm(`Load Yahoo fundamentals + Wikipedia extracts for ${selectedSymbols.size} selected symbol(s)?`)) return;
+        try {
+            const r = await fetch(`${API_BASE}/api/admin/bulk-info-load`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ symbols: [...selectedSymbols], sleep_seconds: YAHOO_BATCH_SLEEP }),
+            });
+            const d = await r.json();
+            if (d.ok && d.job_id) {
+                setInfoJob({
+                    job_id: d.job_id,
+                    status: 'queued',
+                    current: 0,
+                    total: selectedSymbols.size,
+                    current_symbol: null,
+                    error: null,
+                    contextLabel: 'Selected symbols',
+                });
+            }
+        } catch (e) { console.error('bulk info start failed:', e); }
+    }, [selectedSymbols, jobsRunning]);
+
+    const startCategoryBulkInfo = useCallback(async (categoryKey, sectionLabel) => {
+        if (!categoryKey || jobsRunning) return;
+        if (!window.confirm(`Load Yahoo fundamentals + Wikipedia for all symbols in "${sectionLabel}"?`)) return;
+        try {
+            const r = await fetch(`${API_BASE}/api/admin/bulk-info-load`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ categories: [categoryKey], sleep_seconds: YAHOO_BATCH_SLEEP }),
+            });
+            const d = await r.json();
+            if (d.ok && d.job_id) {
+                setInfoJob({
+                    job_id: d.job_id,
+                    status: 'queued',
+                    current: 0,
+                    total: 0,
+                    current_symbol: null,
+                    error: null,
+                    contextLabel: sectionLabel,
+                });
+            }
+        } catch (e) { console.error('category bulk info failed:', e); }
+    }, [jobsRunning]);
 
     const startCategoryParquetDownload = useCallback(async (categoryKey, sectionLabel) => {
         if (!categoryKey || jobsRunning) return;
@@ -159,7 +248,7 @@ export default function UniversePage({ state, setState, openAnalysisSymbol, open
             const r = await fetch(`${API_BASE}/api/admin/redownload-all`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ categories: [categoryKey], sleep_seconds: 0.75 }),
+                body: JSON.stringify({ categories: [categoryKey], sleep_seconds: YAHOO_BATCH_SLEEP }),
             });
             const d = await r.json();
             if (d.ok && d.job_id) {
@@ -188,7 +277,7 @@ export default function UniversePage({ state, setState, openAnalysisSymbol, open
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     categories: [categoryKey],
-                    sleep_seconds: 0.1,
+                    sleep_seconds: YAHOO_BATCH_SLEEP,
                     include_intraday: true,
                     intraday_15m_days: 60,
                     intraday_1h_days: 730,
@@ -210,14 +299,29 @@ export default function UniversePage({ state, setState, openAnalysisSymbol, open
         } catch (e) { console.error('category full data download failed:', e); }
     }, [jobsRunning]);
 
+    const categoryFamilyRank = useMemo(() => {
+        const m = {};
+        (state.tickerCategorySummary || []).forEach((row) => {
+            m[row.category] = row.assetFamily || 'instrument';
+        });
+        return m;
+    }, [state.tickerCategorySummary]);
+
     const indexCategories = useMemo(() => {
-        const result = [];
+        const rows = [];
         Object.keys(state.tickersData).forEach((cat) => {
             const filtered = state.tickersData[cat].filter((t) => t.toUpperCase().includes(state.searchTerm));
-            if (filtered.length > 0) result.push({ cat, filtered });
+            if (filtered.length > 0) rows.push({ cat, filtered });
         });
-        return result;
-    }, [state.tickersData, state.searchTerm]);
+        const labelFor = (cat) => state.categoryLabelMap?.[cat] || cat.replace(/_/g, ' ');
+        rows.sort((a, b) => {
+            const fa = familyRank(categoryFamilyRank[a.cat]);
+            const fb = familyRank(categoryFamilyRank[b.cat]);
+            if (fa !== fb) return fa - fb;
+            return labelFor(a.cat).localeCompare(labelFor(b.cat));
+        });
+        return rows;
+    }, [state.tickersData, state.searchTerm, state.categoryLabelMap, categoryFamilyRank]);
 
     const visibleAssetSymbols = useMemo(
         () => indexCategories.flatMap(({ filtered }) => filtered).slice(0, 300),
@@ -226,7 +330,12 @@ export default function UniversePage({ state, setState, openAnalysisSymbol, open
 
     useEffect(() => {
         setVisibleSections({});
+        setSectionExpanded({});
     }, [state.searchTerm, industryFilter, groupMode, activeAssetType]);
+
+    const toggleSectionExpanded = useCallback((label) => {
+        setSectionExpanded((prev) => ({ ...prev, [label]: !prev[label] }));
+    }, []);
 
     useEffect(() => {
         if (!visibleAssetSymbols.length) {
@@ -376,6 +485,16 @@ export default function UniversePage({ state, setState, openAnalysisSymbol, open
             }))
             .filter((x) => x.symbols.length > 0);
     }, [indexCategories, assetSnapshots, industryFilter, groupMode, state.categoryLabelMap, activeAssetType]);
+
+    const expandAllSections = useCallback(() => {
+        const next = {};
+        filteredSections.forEach(({ label }) => { next[label] = true; });
+        setSectionExpanded(next);
+    }, [filteredSections]);
+
+    const collapseAllSections = useCallback(() => {
+        setSectionExpanded({});
+    }, []);
 
     const overview = useMemo(() => {
         const symbols = filteredSections.flatMap(({ symbols: rows }) => rows);
@@ -530,70 +649,118 @@ export default function UniversePage({ state, setState, openAnalysisSymbol, open
             {/* ——— MF Browser Panel ——— */}
             {activeAssetType === 'mf-browser' && (
                 <div className="uni-mf-panel">
-                    <div className="mdl-card uni-mf-card">
-                        <div className="uni-mf-header">
-                            <div>
-                                <span className="wl-card-eyebrow">AMFI Registry</span>
-                                <h2 className="uni-section-title">India Mutual Funds</h2>
-                                <span className="uni-section-count">{mfTotal.toLocaleString()} schemes found</span>
+                    <article className="mdl-card uni-mf-card">
+                        <header className="uni-mf-hero">
+                            <div className="uni-mf-hero__icon" aria-hidden>
+                                <span className="material-symbols-rounded">savings</span>
+                            </div>
+                            <div className="uni-mf-hero__main">
+                                <span className="uni-mf-eyebrow">AMFI registry</span>
+                                <div className="uni-mf-hero__title-row">
+                                    <h2 className="uni-mf-hero__title">India mutual funds</h2>
+                                    <span className="uni-mf-hero__badge">{mfTotal.toLocaleString()} schemes</span>
+                                </div>
+                                <p className="uni-mf-hero__sub">
+                                    Browse SEBI-registered schemes. Filter by category or fund house, then open a row for charts, NAV history, and detail.
+                                </p>
+                            </div>
+                        </header>
+
+                        <div className="uni-mf-toolbar">
+                            <div className="uni-mf-field uni-mf-field--search">
+                                <label className="uni-mf-field__label" htmlFor="uni-mf-search-input">Search</label>
+                                <input
+                                    id="uni-mf-search-input"
+                                    className="md-search uni-mf-search"
+                                    placeholder="Scheme name, fund house, ISIN…"
+                                    value={mfQuery}
+                                    onChange={(e) => { setMfQuery(e.target.value); setMfOffset(0); }}
+                                    autoComplete="off"
+                                />
+                            </div>
+                            <div className="uni-mf-field">
+                                <label className="uni-mf-field__label" htmlFor="uni-mf-cat">Category</label>
+                                <select id="uni-mf-cat" className="md-select-inline uni-mf-select" value={mfCategory} onChange={(e) => { setMfCategory(e.target.value); setMfOffset(0); }}>
+                                    <option value="">All categories</option>
+                                    {mfCategories.map((c) => <option key={c} value={c}>{c}</option>)}
+                                </select>
+                            </div>
+                            <div className="uni-mf-field">
+                                <label className="uni-mf-field__label" htmlFor="uni-mf-house">Fund house</label>
+                                <select id="uni-mf-house" className="md-select-inline uni-mf-select" value={mfHouse} onChange={(e) => { setMfHouse(e.target.value); setMfOffset(0); }}>
+                                    <option value="">All fund houses</option>
+                                    {mfHouses.map((h) => <option key={h} value={h}>{h}</option>)}
+                                </select>
                             </div>
                         </div>
-                        <div className="uni-mf-filters">
-                            <input
-                                className="md-search uni-mf-search"
-                                placeholder="Search scheme name, fund house, ISIN…"
-                                value={mfQuery}
-                                onChange={(e) => { setMfQuery(e.target.value); setMfOffset(0); }}
-                            />
-                            <select className="md-select-inline" value={mfCategory} onChange={(e) => { setMfCategory(e.target.value); setMfOffset(0); }}>
-                                <option value="">All categories</option>
-                                {mfCategories.map((c) => <option key={c} value={c}>{c}</option>)}
-                            </select>
-                            <select className="md-select-inline" value={mfHouse} onChange={(e) => { setMfHouse(e.target.value); setMfOffset(0); }}>
-                                <option value="">All fund houses</option>
-                                {mfHouses.map((h) => <option key={h} value={h}>{h}</option>)}
-                            </select>
-                        </div>
-                        <div className="uni-list-wrap uni-mf-list">
-                            <table className="uni-list-table">
-                                <thead>
-                                    <tr>
-                                        <th>Symbol</th>
-                                        <th>Scheme name</th>
-                                        <th>Fund house</th>
-                                        <th>Category</th>
-                                        <th>NAV</th>
-                                        <th>NAV date</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {mfSchemes.map((s) => (
-                                        <tr key={s.symbol} className="uni-list-row" onClick={() => handleOpen(s.symbol)} role="button" tabIndex={0}>
-                                            <td className="uni-list-sym">{s.symbol}</td>
-                                            <td className="uni-list-name uni-mf-name">{s.scheme_name}</td>
-                                            <td className="uni-list-industry">{s.fund_house}</td>
-                                            <td className="uni-list-industry">{s.scheme_category}</td>
-                                            <td className="uni-list-price">{s.latest_nav != null ? `₹${Number(s.latest_nav).toFixed(4)}` : '--'}</td>
-                                            <td className="uni-list-exchange">{s.latest_nav_date || '--'}</td>
-                                            <td className="uni-list-action"><span className="uni-open-arrow">&rarr;</span></td>
+
+                        <div className="uni-mf-table-shell">
+                            <div className={`uni-mf-scroll ${mfLoading ? 'uni-mf-scroll--loading' : ''}`}>
+                                <table className="uni-list-table uni-mf-table" aria-label="Mutual fund schemes">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Symbol</th>
+                                            <th scope="col">Scheme name</th>
+                                            <th scope="col">Fund house</th>
+                                            <th scope="col">Category</th>
+                                            <th scope="col" className="uni-mf-th-num">NAV</th>
+                                            <th scope="col">NAV date</th>
+                                            <th scope="col" className="uni-mf-th-action"><span className="visually-hidden">Open</span></th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                            {mfLoading && <div className="uni-mf-loading">Loading schemes…</div>}
-                            {!mfLoading && !mfSchemes.length && <div className="uni-mf-loading">No schemes match your filters.</div>}
+                                    </thead>
+                                    <tbody>
+                                        {mfSchemes.map((s) => (
+                                            <tr
+                                                key={s.symbol}
+                                                className="uni-list-row uni-mf-row"
+                                                onClick={() => handleOpen(s.symbol)}
+                                                role="button"
+                                                tabIndex={0}
+                                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleOpen(s.symbol); } }}
+                                            >
+                                                <td className="uni-mf-td-sym">
+                                                    <code className="uni-mf-sym-pill">{s.symbol}</code>
+                                                </td>
+                                                <td className="uni-list-name uni-mf-name">{s.scheme_name}</td>
+                                                <td className="uni-mf-td-house">{s.fund_house}</td>
+                                                <td className="uni-mf-td-cat">{s.scheme_category}</td>
+                                                <td className="uni-mf-td-nav">{s.latest_nav != null ? `₹${Number(s.latest_nav).toFixed(4)}` : '—'}</td>
+                                                <td className="uni-mf-td-date">{s.latest_nav_date || '—'}</td>
+                                                <td className="uni-mf-td-go">
+                                                    <span className="uni-mf-go" aria-hidden><span className="material-symbols-rounded">chevron_right</span></span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                                {mfLoading && (
+                                    <div className="uni-mf-loading" role="status">
+                                        <span className="md-spinner uni-mf-spinner" aria-hidden />
+                                        <span>Loading schemes…</span>
+                                    </div>
+                                )}
+                                {!mfLoading && !mfSchemes.length && (
+                                    <div className="uni-mf-empty">
+                                        <span className="material-symbols-rounded uni-mf-empty__icon" aria-hidden>search_off</span>
+                                        <p>No schemes match your filters.</p>
+                                        <p className="uni-mf-empty__hint">Try a shorter search or clear category / fund house.</p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
+
                         {mfSchemes.length < mfTotal && !mfLoading && (
-                            <button
-                                type="button"
-                                className="md-btn md-btn--small uni-mf-more"
-                                onClick={() => loadMfSchemes(mfQuery, mfCategory, mfHouse, mfOffset)}
-                            >
-                                Load more ({mfTotal - mfSchemes.length} remaining)
-                            </button>
+                            <div className="uni-mf-footer">
+                                <button
+                                    type="button"
+                                    className="md-btn md-btn--small uni-mf-more"
+                                    onClick={() => loadMfSchemes(mfQuery, mfCategory, mfHouse, mfOffset)}
+                                >
+                                    Load more ({(mfTotal - mfSchemes.length).toLocaleString()} remaining)
+                                </button>
+                            </div>
                         )}
-                    </div>
+                    </article>
                 </div>
             )}
 
@@ -710,6 +877,36 @@ export default function UniversePage({ state, setState, openAnalysisSymbol, open
                         </div>
                     )}
 
+                    {infoJob && infoJob.status !== 'dismissed' && (
+                        <div className={`uni-dl-banner uni-dl-banner--info ${infoJob.status === 'failed' ? 'uni-dl-banner--fail' : ''} ${infoJob.status === 'completed' ? 'uni-dl-banner--done' : ''}`}>
+                            <div className="uni-dl-banner__text">
+                                {infoJob.contextLabel && (infoJob.status === 'queued' || infoJob.status === 'running') && (
+                                    <span className="uni-dl-banner__ctx">{infoJob.contextLabel} · </span>
+                                )}
+                                {infoJob.status === 'completed' && (
+                                    <span>
+                                        Fundamentals load complete — Yahoo + Wikipedia: {infoJob.stats?.successful ?? 0} ok, {infoJob.stats?.failed ?? 0} failed.
+                                    </span>
+                                )}
+                                {infoJob.status === 'failed' && <span>Fundamentals load failed: {infoJob.error || 'unknown error'}</span>}
+                                {(infoJob.status === 'queued' || infoJob.status === 'running') && (
+                                    <span>
+                                        Fundamentals {infoJob.current || 0}/{infoJob.total || '?'}
+                                        {infoJob.current_symbol ? ` — ${infoJob.current_symbol}` : ''}
+                                    </span>
+                                )}
+                            </div>
+                            {(infoJob.status === 'queued' || infoJob.status === 'running') && infoJob.total > 0 && (
+                                <div className="uni-dl-banner__bar">
+                                    <span style={{ width: `${Math.min(100, Math.round((100 * (infoJob.current || 0)) / infoJob.total))}%` }} />
+                                </div>
+                            )}
+                            {(infoJob.status === 'completed' || infoJob.status === 'failed') && (
+                                <button type="button" className="uni-dl-banner__dismiss" onClick={() => setInfoJob((p) => ({ ...p, status: 'dismissed' }))}>Dismiss</button>
+                            )}
+                        </div>
+                    )}
+
                     {fullDataJob && fullDataJob.status !== 'dismissed' && (
                         <div className={`uni-dl-banner uni-dl-banner--full ${fullDataJob.status === 'failed' ? 'uni-dl-banner--fail' : ''} ${fullDataJob.status === 'completed' ? 'uni-dl-banner--done' : ''}`}>
                             <div className="uni-dl-banner__text">
@@ -772,6 +969,13 @@ export default function UniversePage({ state, setState, openAnalysisSymbol, open
                                     <button type="button" className={`uni-ctrl-chip ${viewStyle === 'card' ? 'uni-ctrl-chip--active' : ''}`} onClick={() => setViewStyle('card')}>Card</button>
                                 </div>
                             </div>
+                            <div className="uni-ctrl-group">
+                                <label className="uni-ctrl-label">Sections</label>
+                                <div className="uni-chip-set">
+                                    <button type="button" className="md-btn md-btn--small md-btn--ghost" onClick={expandAllSections}>Expand all</button>
+                                    <button type="button" className="md-btn md-btn--small md-btn--ghost" onClick={collapseAllSections}>Collapse all</button>
+                                </div>
+                            </div>
                             {selectedSymbols.size > 0 && (
                                 <div className="uni-ctrl-group uni-ctrl-group--actions">
                                     <button
@@ -781,6 +985,15 @@ export default function UniversePage({ state, setState, openAnalysisSymbol, open
                                         onClick={startBatchDownload}
                                     >
                                         Download selected ({selectedSymbols.size})
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="md-btn md-btn--small uni-dl-btn"
+                                        disabled={jobsRunning}
+                                        onClick={startBulkInfoSelected}
+                                        title="Yahoo .info + Wikipedia extract into local SQLite"
+                                    >
+                                        Load fundamentals ({selectedSymbols.size})
                                     </button>
                                     <button type="button" className="md-btn md-btn--small md-btn--ghost" onClick={clearSelection}>
                                         Clear
@@ -820,17 +1033,37 @@ export default function UniversePage({ state, setState, openAnalysisSymbol, open
                     {/* Sections */}
                     {filteredSections.map(({ label, symbols, categoryKey }) => {
                         const limit = visibleSections[label] || 30;
+                        const isExpanded = sectionExpanded[label] === true;
                         return (
                             <section key={label} id={`uni-sect-${label.replace(/\W/g, '_')}`} className="uni-section">
                                 <div className="mdl-card uni-section-card">
                                     <div className="uni-section-head">
-                                        <div>
+                                        <button
+                                            type="button"
+                                            className="uni-section-toggle"
+                                            onClick={() => toggleSectionExpanded(label)}
+                                            aria-expanded={isExpanded}
+                                            aria-controls={`uni-sect-body-${label.replace(/\W/g, '_')}`}
+                                            id={`uni-sect-head-${label.replace(/\W/g, '_')}`}
+                                        >
+                                            <span className="uni-section-toggle__chev" aria-hidden>{isExpanded ? '▼' : '▶'}</span>
+                                        </button>
+                                        <div className="uni-section-head-text">
                                             <h2 className="uni-section-title">{label}</h2>
                                             <span className="uni-section-count">{symbols.length} instruments</span>
                                         </div>
                                         <div className="uni-section-actions">
                                             {categoryKey && (
                                                 <>
+                                                    <button
+                                                        type="button"
+                                                        className="md-btn md-btn--small uni-section-meta"
+                                                        title="Yahoo .info + Wikipedia into SQLite"
+                                                        disabled={jobsRunning}
+                                                        onClick={() => startCategoryBulkInfo(categoryKey, label)}
+                                                    >
+                                                        Load fundamentals
+                                                    </button>
                                                     <button
                                                         type="button"
                                                         className="md-btn md-btn--small uni-section-dl"
@@ -843,7 +1076,7 @@ export default function UniversePage({ state, setState, openAnalysisSymbol, open
                                                     <button
                                                         type="button"
                                                         className="md-btn md-btn--small uni-section-dl uni-section-dl--full"
-                                                        title="Full history to SQLite + intraday where Yahoo allows; runs pitchfork scan per symbol"
+                                                        title="Full history to SQLite + tiered intraday; runs pitchfork scan per symbol"
                                                         disabled={jobsRunning}
                                                         onClick={() => startCategoryFullDataDownload(categoryKey, label, symbols.length)}
                                                     >
@@ -851,7 +1084,7 @@ export default function UniversePage({ state, setState, openAnalysisSymbol, open
                                                     </button>
                                                 </>
                                             )}
-                                            {symbols.length > limit && (
+                                            {isExpanded && symbols.length > limit && (
                                                 <button
                                                     type="button"
                                                     className="md-btn md-btn--small"
@@ -863,6 +1096,8 @@ export default function UniversePage({ state, setState, openAnalysisSymbol, open
                                         </div>
                                     </div>
 
+                                    {isExpanded && (
+                                    <div className="uni-section-body" id={`uni-sect-body-${label.replace(/\W/g, '_')}`} role="region" aria-labelledby={`uni-sect-head-${label.replace(/\W/g, '_')}`}>
                                     {viewStyle === 'list' ? (
                                         <div className="uni-list-wrap">
                                             <table className="uni-list-table uni-list-table--full">
@@ -974,6 +1209,8 @@ export default function UniversePage({ state, setState, openAnalysisSymbol, open
                                                 );
                                             })}
                                         </div>
+                                    )}
+                                    </div>
                                     )}
                                 </div>
                             </section>

@@ -128,12 +128,12 @@ function App() {
 
                 <div className="mw-main">
                     <div className="mw-shell mw-shell--main">
-                        {module === 'dashboard' && <HomeDashboard state={state} handlers={handlers} setState={setState} />}
-                        {module === 'portfolio' && <PortfolioDashboard state={state} handlers={handlers} openAnalysisSymbol={openAnalysisSymbol} />}
+                {module === 'dashboard' && <HomeDashboard state={state} handlers={handlers} setState={setState} />}
+                {module === 'portfolio' && <PortfolioDashboard state={state} handlers={handlers} openAnalysisSymbol={openAnalysisSymbol} />}
                         {module === 'watchlists' && (
                             <WatchlistsDashboard state={state} handlers={handlers} openAnalysisSymbol={openAnalysisSymbol} apiBase={API_BASE} />
                         )}
-                        {module === 'assets' && (
+                {module === 'assets' && (
                             <UniversePage state={state} setState={setState} openAnalysisSymbol={openAnalysisSymbol} openAssetDetail={openAssetDetail} />
                         )}
                         {module === 'asset-detail' && (
@@ -145,7 +145,7 @@ function App() {
                                 onBack={backToUniverse}
                             />
                         )}
-                        {module === 'analysis' && (
+                {module === 'analysis' && (
                             <AnalysisPage state={state} handlers={handlers} setState={setState} openAnalysisSymbol={openAnalysisSymbol} />
                         )}
                         {module === 'forks' && <ForksPage state={state} handlers={handlers} openAnalysisSymbol={openAnalysisSymbol} />}

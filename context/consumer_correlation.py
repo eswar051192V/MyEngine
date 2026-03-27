@@ -6,7 +6,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from market_download import DATA_DIR
+from market_download import DATA_DIR, parquet_symbol_key
 
 from context.india_consumer_ingest import iter_cases
 
@@ -52,8 +52,13 @@ def monthly_complaint_counts(symbol: str, cases: list[dict[str, Any]] | None = N
 
 
 def load_ohlc_daily(symbol: str) -> pd.DataFrame | None:
-    path = os.path.join(DATA_DIR, "1d", f"{symbol}.parquet")
-    if not os.path.exists(path):
+    raw = str(symbol).strip().upper()
+    safe = parquet_symbol_key(symbol)
+    parquet_paths = [os.path.join(DATA_DIR, "1d", f"{safe}.parquet")]
+    if safe != raw:
+        parquet_paths.append(os.path.join(DATA_DIR, "1d", f"{raw}.parquet"))
+    path = next((p for p in parquet_paths if os.path.exists(p)), None)
+    if not path:
         return None
     df = pd.read_parquet(path)
     if df.empty:

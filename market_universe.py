@@ -183,6 +183,34 @@ CATEGORY_METADATA: dict[str, dict[str, Any]] = {
         "exchange": "MCX Proxy",
         "is_proxy": True,
     },
+    "Global_Crypto_Majors": {
+        "label": "Global Crypto (Majors)",
+        "asset_family": "crypto",
+        "region": "Global",
+        "exchange": "CCY",
+        "is_proxy": False,
+    },
+    "Global_Government_Bonds_Proxy": {
+        "label": "Global Government Bonds (Proxy)",
+        "asset_family": "bond",
+        "region": "Global",
+        "exchange": "INDEX",
+        "is_proxy": True,
+    },
+    "US_Options_Liquid_Underlyings": {
+        "label": "US Options — Liquid Underlyings",
+        "asset_family": "equity",
+        "region": "United States",
+        "exchange": "US",
+        "is_proxy": False,
+    },
+    "India_NSE_Options_Underlyings": {
+        "label": "India NSE — Options Underlyings",
+        "asset_family": "equity",
+        "region": "India",
+        "exchange": "NSE",
+        "is_proxy": False,
+    },
 }
 
 EXCHANGE_SCHEDULE: dict[str, dict[str, Any]] = {
