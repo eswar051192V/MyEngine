@@ -1,0 +1,9 @@
+{
+  "_comment": "rss: add lawful feed URLs. reddit: subreddit names (public /new JSON). courtlistener_queries: search strings when COURTLISTENER_API_KEY is set.",
+  "rss": [],
+  "reddit": [
+    { "subreddit": "indianstocks", "limit": 12 },
+    { "subreddit": "wallstreetbets", "limit": 8 }
+  ],
+  "courtlistener_queries": []
+}

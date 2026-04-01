@@ -1,3 +1,315 @@
 {
-    "last_viewed": "20MICRONS.NS"
+  "last_viewed": "20MICRONS.NS",
+  "watchlist": [
+    "GOOGL",
+    "360ONE.NS",
+    "AARTISURF.NS",
+    "CASTROLIND.NS"
+  ],
+  "portfolios": {
+    "Main": [
+      {
+        "id": "1774541530634_HDFC BANK LTD.NS",
+        "entryType": "transaction",
+        "side": "BUY",
+        "transactionSubtype": "",
+        "symbol": "HDFC BANK LTD.NS",
+        "assetName": "HDFC BANK LTD.NS",
+        "description": "",
+        "notes": "",
+        "brokerReference": "",
+        "importSource": "",
+        "importBatchId": "",
+        "purchaseType": "Delivery",
+        "segment": "futures",
+        "tradeDate": "",
+        "platform": "Zerodha",
+        "country": "India",
+        "state": "",
+        "quantity": 10000.0,
+        "price": 100.0,
+        "currentPrice": 0.0,
+        "currencySymbol": "$",
+        "manualCharge": 0.0,
+        "manualTax": 0.0,
+        "chargeSnapshot": {
+          "platformId": "zerodha",
+          "platformLabel": "Zerodha",
+          "segmentKey": "equity_delivery",
+          "segmentLabel": "Equity Delivery",
+          "side": "BUY",
+          "turnover": 1000000.0,
+          "lines": [
+            {
+              "key": "stt",
+              "label": "STT",
+              "amount": 1000.0
+            },
+            {
+              "key": "stamp_duty",
+              "label": "Stamp Duty",
+              "amount": 150.0
+            },
+            {
+              "key": "exchange_txn",
+              "label": "Exchange Transaction Charge",
+              "amount": 29.7
+            },
+            {
+              "key": "sebi",
+              "label": "SEBI Turnover Charge",
+              "amount": 1.0
+            },
+            {
+              "key": "gst",
+              "label": "GST",
+              "amount": 5.53
+            }
+          ],
+          "totals": {
+            "stt": 1000.0,
+            "stamp_duty": 150.0,
+            "exchange_txn": 29.7,
+            "sebi": 1.0,
+            "gst": 5.53
+          },
+          "totalCharges": 1186.23,
+          "sourceTitle": "Zerodha pricing",
+          "sourceUrl": "https://zerodha.com/pricing",
+          "exactness": "official_template",
+          "registryVersion": "2026-03-25.india.v1"
+        },
+        "createdAt": "2026-03-26T16:12:10.634Z",
+        "legacyImported": false
+      },
+      {
+        "id": "1774529398578_HDBFS.NS",
+        "entryType": "transaction",
+        "side": "BUY",
+        "transactionSubtype": "",
+        "symbol": "HDBFS.NS",
+        "assetName": "HDBFS.NS",
+        "description": "",
+        "notes": "",
+        "brokerReference": "",
+        "importSource": "",
+        "importBatchId": "",
+        "purchaseType": "Delivery",
+        "segment": "equity",
+        "tradeDate": "2026-03-26",
+        "platform": "Upstox",
+        "country": "India",
+        "state": "",
+        "quantity": 1000.0,
+        "price": 1000.0,
+        "currentPrice": 611.85,
+        "currencySymbol": "\u20b9",
+        "manualCharge": 0.0,
+        "manualTax": 0.0,
+        "chargeSnapshot": {
+          "platformId": "upstox",
+          "platformLabel": "Upstox",
+          "segmentKey": "equity_delivery",
+          "segmentLabel": "Equity Delivery",
+          "side": "BUY",
+          "turnover": 1000000.0,
+          "lines": [
+            {
+              "key": "brokerage",
+              "label": "Brokerage",
+              "amount": 20.0
+            },
+            {
+              "key": "stt",
+              "label": "STT",
+              "amount": 1000.0
+            },
+            {
+              "key": "stamp_duty",
+              "label": "Stamp Duty",
+              "amount": 150.0
+            },
+            {
+              "key": "exchange_txn",
+              "label": "Exchange Transaction Charge",
+              "amount": 29.7
+            },
+            {
+              "key": "sebi",
+              "label": "SEBI Turnover Charge",
+              "amount": 1.0
+            },
+            {
+              "key": "gst",
+              "label": "GST",
+              "amount": 9.13
+            }
+          ],
+          "totals": {
+            "brokerage": 20.0,
+            "stt": 1000.0,
+            "stamp_duty": 150.0,
+            "exchange_txn": 29.7,
+            "sebi": 1.0,
+            "gst": 9.13
+          },
+          "totalCharges": 1209.83,
+          "sourceTitle": "Upstox pricing",
+          "sourceUrl": "https://upstox.com/pricing/",
+          "exactness": "official_template",
+          "registryVersion": "2026-03-25.india.v1"
+        },
+        "createdAt": "2026-03-26T12:49:58.578Z",
+        "legacyImported": false
+      },
+      {
+        "id": "1774528075727_HDBFS.NS",
+        "entryType": "transaction",
+        "side": "SELL",
+        "transactionSubtype": "",
+        "symbol": "HDBFS.NS",
+        "assetName": "HDBFS.NS",
+        "description": "",
+        "notes": "",
+        "brokerReference": "",
+        "importSource": "",
+        "importBatchId": "",
+        "purchaseType": "Delivery",
+        "segment": "equity",
+        "tradeDate": "2026-03-26",
+        "platform": "Zerodha",
+        "country": "India",
+        "state": "",
+        "quantity": 100.0,
+        "price": 80.0,
+        "currentPrice": 611.85,
+        "currencySymbol": "\u20b9",
+        "manualCharge": 0.0,
+        "manualTax": 0.0,
+        "chargeSnapshot": {
+          "platformId": "zerodha",
+          "platformLabel": "Zerodha",
+          "segmentKey": "equity_delivery",
+          "segmentLabel": "Equity Delivery",
+          "side": "SELL",
+          "turnover": 8000.0,
+          "lines": [
+            {
+              "key": "dp_charge",
+              "label": "DP Charge",
+              "amount": 13.5
+            },
+            {
+              "key": "stt",
+              "label": "STT",
+              "amount": 8.0
+            },
+            {
+              "key": "exchange_txn",
+              "label": "Exchange Transaction Charge",
+              "amount": 0.24
+            },
+            {
+              "key": "sebi",
+              "label": "SEBI Turnover Charge",
+              "amount": 0.01
+            },
+            {
+              "key": "gst",
+              "label": "GST",
+              "amount": 2.47
+            }
+          ],
+          "totals": {
+            "dp_charge": 13.5,
+            "stt": 8.0,
+            "exchange_txn": 0.24,
+            "sebi": 0.01,
+            "gst": 2.47
+          },
+          "totalCharges": 24.22,
+          "sourceTitle": "Zerodha pricing",
+          "sourceUrl": "https://zerodha.com/pricing",
+          "exactness": "official_template",
+          "registryVersion": "2026-03-25.india.v1"
+        },
+        "createdAt": "2026-03-26T12:27:55.727Z",
+        "legacyImported": false
+      },
+      {
+        "id": "1774527611501_HDBFS.NS",
+        "entryType": "transaction",
+        "side": "BUY",
+        "transactionSubtype": "",
+        "symbol": "HDBFS.NS",
+        "assetName": "HDBFS.NS",
+        "description": "",
+        "notes": "",
+        "brokerReference": "",
+        "importSource": "",
+        "importBatchId": "",
+        "purchaseType": "Delivery",
+        "segment": "equity",
+        "tradeDate": "2026-03-26",
+        "platform": "Zerodha",
+        "country": "India",
+        "state": "",
+        "quantity": 100.0,
+        "price": 100.0,
+        "currentPrice": 611.85,
+        "currencySymbol": "\u20b9",
+        "manualCharge": 0.0,
+        "manualTax": 0.0,
+        "chargeSnapshot": {
+          "platformId": "zerodha",
+          "platformLabel": "Zerodha",
+          "segmentKey": "equity_delivery",
+          "segmentLabel": "Equity Delivery",
+          "side": "BUY",
+          "turnover": 10000.0,
+          "lines": [
+            {
+              "key": "stt",
+              "label": "STT",
+              "amount": 10.0
+            },
+            {
+              "key": "stamp_duty",
+              "label": "Stamp Duty",
+              "amount": 1.5
+            },
+            {
+              "key": "exchange_txn",
+              "label": "Exchange Transaction Charge",
+              "amount": 0.3
+            },
+            {
+              "key": "sebi",
+              "label": "SEBI Turnover Charge",
+              "amount": 0.01
+            },
+            {
+              "key": "gst",
+              "label": "GST",
+              "amount": 0.06
+            }
+          ],
+          "totals": {
+            "stt": 10.0,
+            "stamp_duty": 1.5,
+            "exchange_txn": 0.3,
+            "sebi": 0.01,
+            "gst": 0.06
+          },
+          "totalCharges": 11.86,
+          "sourceTitle": "Zerodha pricing",
+          "sourceUrl": "https://zerodha.com/pricing",
+          "exactness": "official_template",
+          "registryVersion": "2026-03-25.india.v1"
+        },
+        "createdAt": "2026-03-26T12:20:11.501Z",
+        "legacyImported": false
+      }
+    ]
+  }
 }

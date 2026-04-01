@@ -1,0 +1,4 @@
+{
+  "_comment": "Add only RSS feeds you are permitted to poll. Empty feeds is valid; use incoming/*.jsonl for hand-curated cases.",
+  "feeds": []
+}

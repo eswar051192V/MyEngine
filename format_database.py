@@ -1,78 +1,92 @@
+from __future__ import annotations
+
 import json
 
-def format_master_database():
+from market_universe import INDEX_PROXY_MAP
+
+LEGACY_MCX_MAP = {
+    "GOLD": "GC=F",
+    "GOLDM": "GC=F",
+    "SILVER": "SI=F",
+    "SILVERMIC": "SI=F",
+    "CRUDEOIL": "CL=F",
+    "NATURALGAS": "NG=F",
+    "COPPER": "HG=F",
+    "ALUMINIUM": "ALI=F",
+}
+
+
+def _dedupe_sorted(symbols: list[str]) -> list[str]:
+    return sorted({str(symbol).strip() for symbol in symbols if str(symbol).strip()})
+
+
+def format_master_database() -> None:
     try:
-        with open("all_global_tickers.json", "r") as f:
+        with open("all_global_tickers.json", "r", encoding="utf-8") as f:
             data = json.load(f)
     except FileNotFoundError:
-        print("❌ Please save your JSON data into a file named 'raw_tickers.json' first.")
+        print("Missing all_global_tickers.json. Run fetch_all_tickers.py first.")
         return
 
-    cleaned_data = {}
-
-    # Yahoo's specific internal codes for Indian Indices
-    INDEX_MAP = {
-        "NIFTY 50": "^NSEI",
-        "NIFTY BANK": "^NSEBANK",
-        "NIFTY FINANCIAL SERVICES": "^CNXFIN",
-        "NIFTY MID SELECT": "^NSEMDCP50",
-        "NIFTY NEXT 50": "^NSMIDCP"
-    }
-
-    # Yahoo doesn't track MCX, so we map to the exact Global Comex/Nymex equivalents
-    MCX_MAP = {
-        "GOLD": "GC=F",
-        "GOLDM": "GC=F",
-        "SILVER": "SI=F",
-        "SILVERMIC": "SI=F",
-        "CRUDEOIL": "CL=F",
-        "NATURALGAS": "NG=F",
-        "COPPER": "HG=F",
-        "ALUMINIUM": "ALI=F"
-    }
+    cleaned_data: dict[str, list[str]] = {}
+    legacy_mcx_proxy: list[str] = []
+    legacy_fo_index_proxy: list[str] = []
+    legacy_fo_stocks: list[str] = []
 
     for category, tickers in data.items():
-        valid_tickers = []
-        
+        valid_tickers: list[str] = []
         for ticker in tickers:
-            clean_t = ticker.strip()
-
-            # 1. Clean US Equities (BRK.B -> BRK-B)
-            if category in ["SP_500", "DOW", "NASDAQ_100"]:
-                clean_t = clean_t.replace(".", "-")
-                valid_tickers.append(clean_t)
+            clean_t = str(ticker).strip().replace(" .NS", ".NS")
+            if not clean_t:
                 continue
 
-            # 2. Clean Indian Indices
-            if category == "NSE_Futures_Options_Underlying":
-                # Extract the base name without the massive spaces and .NS
-                base_name = clean_t.split(".NS")[0].strip()
-                if base_name in INDEX_MAP:
-                    valid_tickers.append(INDEX_MAP[base_name])
-                # We ignore the rest of this category because the actual valid stock 
-                # symbols are already cleanly stored in your "NSE_Equity" category.
+            if category in {"SP_500", "DOW", "NASDAQ_100"}:
+                valid_tickers.append(clean_t.replace(".", "-"))
                 continue
 
-            # 3. Clean MCX Commodities to Global Equivalents
             if category == "Indian_MCX_Underlying":
-                if clean_t in MCX_MAP:
-                    valid_tickers.append(MCX_MAP[clean_t])
+                mapped = LEGACY_MCX_MAP.get(clean_t)
+                if mapped:
+                    legacy_mcx_proxy.append(mapped)
                 continue
 
-            # 4. Standard Cleanup for everything else
-            clean_t = clean_t.replace(" .NS", ".NS")
+            if category == "NSE_Futures_Options_Underlying":
+                if clean_t in INDEX_PROXY_MAP:
+                    proxy = INDEX_PROXY_MAP[clean_t]
+                    legacy_fo_index_proxy.append(proxy)
+                    valid_tickers.append(proxy)
+                elif clean_t.endswith(".NS") or clean_t.startswith("^"):
+                    if clean_t.startswith("^"):
+                        legacy_fo_index_proxy.append(clean_t)
+                    else:
+                        legacy_fo_stocks.append(clean_t)
+                    valid_tickers.append(clean_t)
+                else:
+                    legacy_fo_stocks.append(f"{clean_t}.NS")
+                    valid_tickers.append(f"{clean_t}.NS")
+                continue
+
             valid_tickers.append(clean_t)
 
-        # Remove duplicates and save
         if valid_tickers:
-            cleaned_data[category] = sorted(list(set(valid_tickers)))
+            cleaned_data[category] = _dedupe_sorted(valid_tickers)
 
-    # Save the perfected database for the React App to consume
-    with open("all_global_tickers.json", "w") as f:
-        json.dump(cleaned_data, f, indent=4)
-        
-    print("✅ Successfully formatted all_global_tickers.json!")
-    print("Refresh your React dashboard. Every chart should now load perfectly.")
+    if legacy_mcx_proxy:
+        cleaned_data["Indian_MCX_Proxy_Basket"] = _dedupe_sorted(legacy_mcx_proxy)
+    if legacy_fo_index_proxy:
+        cleaned_data["NSE_Futures_Indices_Proxy"] = _dedupe_sorted(
+            cleaned_data.get("NSE_Futures_Indices_Proxy", []) + legacy_fo_index_proxy
+        )
+    if legacy_fo_stocks:
+        cleaned_data["NSE_Futures_Stock_Underlyings"] = _dedupe_sorted(
+            cleaned_data.get("NSE_Futures_Stock_Underlyings", []) + legacy_fo_stocks
+        )
+
+    with open("all_global_tickers.json", "w", encoding="utf-8") as f:
+        json.dump(cleaned_data, f, indent=2, ensure_ascii=False)
+
+    print("Normalized all_global_tickers.json without collapsing India proxy categories.")
+
 
 if __name__ == "__main__":
     format_master_database()
